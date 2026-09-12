@@ -24,3 +24,16 @@ export function createSupabaseAdminClient() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
+
+export function createSupabaseUserClient(accessToken: string) {
+  const value = config();
+  if (!value) throw new Error("Supabase environment variables are not configured.");
+  return createClient(value.url, value.publishableKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  });
+}

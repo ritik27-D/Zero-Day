@@ -55,10 +55,10 @@ export default async function ResearchersPage() {
               Unified Discovery
             </Link>
             <Link
-              href="/admin"
-              className="rounded-xl border border-indigo-200 bg-indigo-50 px-3.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition"
+              href="/login"
+              className="rounded-xl border border-cyan-200 bg-cyan-50 px-3.5 py-1.5 text-xs font-semibold text-cyan-800 hover:bg-cyan-100 transition"
             >
-              Admin Portal
+              Researcher Portal
             </Link>
           </div>
         </div>

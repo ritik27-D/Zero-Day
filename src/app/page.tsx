@@ -668,10 +668,10 @@ export default async function HomePage() {
 
               <div className="mt-5 pt-4 border-t border-slate-100">
                 <Link
-                  href="/admin"
+                  href="/login"
                   className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition shadow-sm"
                 >
-                  <span>Open Admin Portal</span>
+                  <span>Researcher Portal</span>
                   <span>&rarr;</span>
                 </Link>
               </div>
