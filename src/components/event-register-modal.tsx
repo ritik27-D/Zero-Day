@@ -125,7 +125,7 @@ export function EventRegisterModal({
                   <div>
                     <h4 className="text-xl font-bold text-slate-900">Registration Received</h4>
                     <p className="mt-1.5 text-sm text-slate-600 max-w-sm mx-auto">
-                      Thank you, <span className="font-semibold text-slate-800">{fullName}</span>. Your registration details have been validated for this demo session.
+                      Thank you, <span className="font-semibold text-slate-800">{fullName}</span>. Your registration details have been validated.
                     </p>
                   </div>
 
@@ -153,7 +153,7 @@ export function EventRegisterModal({
                   </div>
 
                   <p className="text-xs text-slate-500">
-                    Registration form completed for this demonstration session. Official academic registrations are coordinated with the CRD secretariat.
+                    Official academic registrations are coordinated with the CRD secretariat.
                   </p>
 
                   <div className="pt-2">
