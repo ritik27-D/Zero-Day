@@ -13,7 +13,30 @@ import {
   approveSubmissionAction,
   rejectSubmissionAction,
   provisionResearcherAccountAction,
+  saveEventAction,
+  deleteEventAction,
+  saveOpportunityAction,
+  deleteOpportunityAction,
+  saveResourceAction,
+  deleteResourceAction,
+  savePartnerAction,
+  deletePartnerAction,
+  saveAnnouncementAction,
+  deleteAnnouncementAction,
+  saveResearchGroupAction,
+  deleteResearchGroupAction,
+  bulkEntityAction,
 } from "./actions";
+import {
+  getEvents,
+  getOpportunities,
+  getResources,
+  getPartners,
+  getAnnouncements,
+  getResearchGroups,
+  getNeedsAttentionItems,
+  getRecentAdminActivity,
+} from "@/lib/hub-data";
 
 type ResearchArea = {
   id: string;
@@ -406,11 +429,125 @@ function SubmissionPayloadCard({ sub }: { sub: Submission }) {
   );
 }
 
+function AdminFilterSortBar({
+  activeTab,
+  filterQ,
+  filterStatus,
+  filterSort,
+  statusOptions,
+}: {
+  activeTab: string;
+  filterQ: string;
+  filterStatus: string;
+  filterSort: string;
+  statusOptions?: { value: string; label: string }[];
+}) {
+  return (
+    <form method="GET" className="flex flex-wrap items-center gap-2 mb-4 p-3 bg-slate-50/80 rounded-xl border border-slate-200">
+      <input type="hidden" name="tab" value={activeTab} />
+      <div className="relative flex-1 min-w-[160px]">
+        <input
+          type="text"
+          name="q"
+          defaultValue={filterQ}
+          placeholder="Filter by keyword..."
+          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        />
+      </div>
+
+      {statusOptions && statusOptions.length > 0 && (
+        <select
+          name="filter_status"
+          defaultValue={filterStatus}
+          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        >
+          <option value="">All Statuses</option>
+          {statusOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      )}
+
+      <select
+        name="sort"
+        defaultValue={filterSort}
+        className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+      >
+        <option value="default">Default Order</option>
+        <option value="name_asc">A &rarr; Z</option>
+        <option value="name_desc">Z &rarr; A</option>
+      </select>
+
+      <button
+        type="submit"
+        className="rounded-lg bg-slate-900 hover:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white transition shadow-2xs"
+      >
+        Filter
+      </button>
+
+      {(filterQ || filterStatus || filterSort !== "default") && (
+        <Link
+          href={`/admin?tab=${activeTab}`}
+          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition"
+        >
+          Reset
+        </Link>
+      )}
+    </form>
+  );
+}
+
+function AdminBulkActionBar({
+  statusOptions,
+}: {
+  statusOptions?: { value: string; label: string }[];
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-indigo-50/80 rounded-xl border border-indigo-100 mb-4 text-xs">
+      <div className="flex items-center gap-2 font-bold text-indigo-950">
+        <span className="w-2 h-2 rounded-full bg-indigo-500" />
+        <span>Bulk Actions:</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <select
+          name="bulk_action"
+          className="rounded-lg border border-indigo-200 bg-white px-2.5 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        >
+          <option value="">Choose bulk action...</option>
+          {statusOptions?.map((opt) => (
+            <option key={opt.value} value={`status_${opt.value}`}>
+              Mark Status: {opt.label}
+            </option>
+          ))}
+          <option value="delete">Delete Selected</option>
+        </select>
+        <button
+          type="submit"
+          className="rounded-lg bg-indigo-600 hover:bg-indigo-500 px-3.5 py-1 text-xs font-bold text-white transition shadow-2xs"
+        >
+          Apply Bulk Action
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default async function AdminPage(props: {
   searchParams: Promise<{
     tab?: string;
     editResearcher?: string;
     editProject?: string;
+    editEvent?: string;
+    editOpportunity?: string;
+    editResource?: string;
+    editPartner?: string;
+    editAnnouncement?: string;
+    editGroup?: string;
+    q?: string;
+    filter_status?: string;
+    sort?: string;
     success?: string;
     error?: string;
   }>;
@@ -439,10 +576,27 @@ export default async function AdminPage(props: {
   const errorMsg = searchParams.error;
   const editingResearcherId = searchParams.editResearcher;
   const editingProjectId = searchParams.editProject;
+  const editingEventId = searchParams.editEvent;
+  const editingOpportunityId = searchParams.editOpportunity;
+  const editingResourceId = searchParams.editResource;
+  const editingPartnerId = searchParams.editPartner;
+  const editingAnnouncementId = searchParams.editAnnouncement;
+  const editingGroupId = searchParams.editGroup;
 
   const client = createSupabaseServerClient();
 
-  const [researchersRes, projectsRes, areasRes, publicationsRes] = await Promise.all([
+  const [
+    researchersRes,
+    projectsRes,
+    areasRes,
+    publicationsRes,
+    events,
+    opportunities,
+    resources,
+    partners,
+    announcements,
+    researchGroups,
+  ] = await Promise.all([
     client
       .from("researchers")
       .select("id, slug, name, email, title, bio, is_demo, researcher_research_areas(research_areas(id, name))")
@@ -455,6 +609,12 @@ export default async function AdminPage(props: {
       .order("title"),
     client.from("research_areas").select("id, name, slug").order("name"),
     client.from("publications").select("id, title, slug").order("title"),
+    getEvents(),
+    getOpportunities(),
+    getResources(),
+    getPartners(),
+    getAnnouncements(),
+    getResearchGroups(),
   ]);
 
   const researchers = (researchersRes.data ?? []) as unknown as Researcher[];
@@ -466,12 +626,57 @@ export default async function AdminPage(props: {
   const submissions = ((await listAllSubmissions()) ?? []) as unknown as Submission[];
 
   const pendingSubmissionsCount = submissions.filter((s) => s.status === "pending").length;
+  const needsAttention = await getNeedsAttentionItems(pendingSubmissionsCount);
+  const recentActivity = await getRecentAdminActivity();
+
+  const filterQ = (searchParams.q || "").toLowerCase().trim();
+  const filterStatus = searchParams.filter_status || "";
+  const filterSort = searchParams.sort || "default";
+
+  function filterAndSort<T extends { title?: string; name?: string; description?: string; bio?: string; status?: string }>(
+    items: T[],
+    statusKey: string = "status"
+  ): T[] {
+    let res = items;
+    if (filterQ) {
+      res = res.filter((item) =>
+        (item.title && item.title.toLowerCase().includes(filterQ)) ||
+        (item.name && item.name.toLowerCase().includes(filterQ)) ||
+        (item.description && item.description.toLowerCase().includes(filterQ)) ||
+        (item.bio && item.bio.toLowerCase().includes(filterQ))
+      );
+    }
+    if (filterStatus) {
+      res = res.filter((item) => (item as Record<string, unknown>)[statusKey] === filterStatus);
+    }
+    if (filterSort === "name_asc") {
+      res = [...res].sort((a, b) => (a.title || a.name || "").localeCompare(b.title || b.name || ""));
+    } else if (filterSort === "name_desc") {
+      res = [...res].sort((a, b) => (b.title || b.name || "").localeCompare(a.title || a.name || ""));
+    }
+    return res;
+  }
+
+  const displayedResearchers = filterAndSort(researchers);
+  const displayedProjects = filterAndSort(projects);
+  const displayedEvents = filterAndSort(events);
+  const displayedOpportunities = filterAndSort(opportunities);
+  const displayedResources = filterAndSort(resources, "category");
+  const displayedPartners = filterAndSort(partners, "type");
+  const displayedAnnouncements = filterAndSort(announcements);
+  const displayedGroups = filterAndSort(researchGroups);
 
   const editingResearcher = editingResearcherId
     ? researchers.find((r) => r.id === editingResearcherId)
     : null;
 
   const editingProject = editingProjectId ? projects.find((p) => p.id === editingProjectId) : null;
+  const editingEvent = editingEventId ? events.find((e) => e.id === editingEventId) : null;
+  const editingOpportunity = editingOpportunityId ? opportunities.find((o) => o.id === editingOpportunityId) : null;
+  const editingResource = editingResourceId ? resources.find((r) => r.id === editingResourceId) : null;
+  const editingPartner = editingPartnerId ? partners.find((p) => p.id === editingPartnerId) : null;
+  const editingAnnouncement = editingAnnouncementId ? announcements.find((a) => a.id === editingAnnouncementId) : null;
+  const editingGroup = editingGroupId ? researchGroups.find((g) => g.id === editingGroupId) : null;
 
   const editingAreaIds = new Set(
     editingResearcher?.researcher_research_areas
@@ -552,13 +757,109 @@ export default async function AdminPage(props: {
           </div>
         ) : null}
 
+        {/* Needs Attention Panel (Dynamically Computed) */}
+        {needsAttention.length > 0 && (
+          <section className="rounded-2xl border border-amber-200/90 bg-amber-50/60 p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+                <h2 className="text-xs font-bold uppercase tracking-wider text-amber-900">
+                  Needs Attention ({needsAttention.length} Items)
+                </h2>
+              </div>
+              <span className="text-[11px] font-semibold text-amber-700">
+                Action Required
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {needsAttention.map((item) => {
+                const badgeColor =
+                  item.severity === "urgent"
+                    ? "bg-rose-100 text-rose-800 border-rose-200"
+                    : item.severity === "warning"
+                    ? "bg-amber-100 text-amber-800 border-amber-200"
+                    : "bg-blue-100 text-blue-800 border-blue-200";
+
+                return (
+                  <div
+                    key={item.id}
+                    className="rounded-xl border border-amber-200/80 bg-white p-3.5 shadow-2xs space-y-1.5 flex flex-col justify-between"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${badgeColor}`}>
+                          {item.type} &bull; {item.severity}
+                        </span>
+                      </div>
+                      <h3 className="text-xs font-bold text-slate-900 leading-snug">
+                        {item.title}
+                      </h3>
+                      <p className="text-[11px] text-slate-600 leading-relaxed">
+                        {item.description}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-end">
+                      <Link
+                        href={item.link}
+                        className="text-xs font-bold text-cyan-700 hover:text-cyan-900 flex items-center gap-1"
+                      >
+                        <span>Resolve</span>
+                        <span>&rarr;</span>
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Recent Activity & Audit Trail (Surfacing existing activity_audit table) */}
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+                Recent Administrative Activity &amp; Audit Trail (activity_audit)
+              </h2>
+            </div>
+            <span className="text-[11px] text-slate-500 font-mono">
+              Live Governance Trail
+            </span>
+          </div>
+
+          <div className="divide-y divide-slate-100">
+            {recentActivity.map((act) => {
+              const timeStr = new Date(act.created_at).toLocaleString("en-US", {
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+              return (
+                <div key={act.id} className="py-2.5 flex flex-wrap items-center justify-between text-xs gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">
+                      {act.action}
+                    </span>
+                    <span className="text-slate-800 font-medium">{act.description}</span>
+                  </div>
+                  <span className="text-slate-400 font-mono shrink-0">{timeStr}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
         {/* Tab Navigation */}
-        <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-px">
+        <div className="flex flex-wrap gap-1.5 border-b border-slate-200 pb-px text-xs">
           <Link
             href="/admin?tab=researchers"
-            className={`px-5 py-2.5 text-sm font-semibold rounded-t-lg border-b-2 transition ${
+            className={`px-4 py-2.5 font-semibold rounded-t-lg border-b-2 transition ${
               activeTab === "researchers"
-                ? "border-indigo-600 bg-white text-indigo-700 shadow-sm"
+                ? "border-indigo-600 bg-white text-indigo-700 shadow-xs"
                 : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
@@ -566,9 +867,9 @@ export default async function AdminPage(props: {
           </Link>
           <Link
             href="/admin?tab=projects"
-            className={`px-5 py-2.5 text-sm font-semibold rounded-t-lg border-b-2 transition ${
+            className={`px-4 py-2.5 font-semibold rounded-t-lg border-b-2 transition ${
               activeTab === "projects"
-                ? "border-indigo-600 bg-white text-indigo-700 shadow-sm"
+                ? "border-indigo-600 bg-white text-indigo-700 shadow-xs"
                 : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
@@ -576,9 +877,9 @@ export default async function AdminPage(props: {
           </Link>
           <Link
             href="/admin?tab=submissions"
-            className={`px-5 py-2.5 text-sm font-semibold rounded-t-lg border-b-2 transition flex items-center gap-1.5 ${
+            className={`px-4 py-2.5 font-semibold rounded-t-lg border-b-2 transition flex items-center gap-1.5 ${
               activeTab === "submissions"
-                ? "border-indigo-600 bg-white text-indigo-700 shadow-sm"
+                ? "border-indigo-600 bg-white text-indigo-700 shadow-xs"
                 : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
@@ -588,18 +889,78 @@ export default async function AdminPage(props: {
                 {pendingSubmissionsCount}
               </span>
             ) : (
-              <span className="text-xs text-slate-400">({submissions.length})</span>
+              <span className="text-[11px] text-slate-400">({submissions.length})</span>
             )}
           </Link>
           <Link
-            href="/admin?tab=accounts"
-            className={`px-5 py-2.5 text-sm font-semibold rounded-t-lg border-b-2 transition ${
-              activeTab === "accounts"
-                ? "border-indigo-600 bg-white text-indigo-700 shadow-sm"
+            href="/admin?tab=events"
+            className={`px-4 py-2.5 font-semibold rounded-t-lg border-b-2 transition ${
+              activeTab === "events"
+                ? "border-indigo-600 bg-white text-indigo-700 shadow-xs"
                 : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
-            Provision Accounts
+            Events ({events.length})
+          </Link>
+          <Link
+            href="/admin?tab=opportunities"
+            className={`px-4 py-2.5 font-semibold rounded-t-lg border-b-2 transition ${
+              activeTab === "opportunities"
+                ? "border-indigo-600 bg-white text-indigo-700 shadow-xs"
+                : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            Opportunities ({opportunities.length})
+          </Link>
+          <Link
+            href="/admin?tab=resources"
+            className={`px-4 py-2.5 font-semibold rounded-t-lg border-b-2 transition ${
+              activeTab === "resources"
+                ? "border-indigo-600 bg-white text-indigo-700 shadow-xs"
+                : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            Resources ({resources.length})
+          </Link>
+          <Link
+            href="/admin?tab=partners"
+            className={`px-4 py-2.5 font-semibold rounded-t-lg border-b-2 transition ${
+              activeTab === "partners"
+                ? "border-indigo-600 bg-white text-indigo-700 shadow-xs"
+                : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            Partners ({partners.length})
+          </Link>
+          <Link
+            href="/admin?tab=announcements"
+            className={`px-4 py-2.5 font-semibold rounded-t-lg border-b-2 transition ${
+              activeTab === "announcements"
+                ? "border-indigo-600 bg-white text-indigo-700 shadow-xs"
+                : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            Announcements ({announcements.length})
+          </Link>
+          <Link
+            href="/admin?tab=groups"
+            className={`px-4 py-2.5 font-semibold rounded-t-lg border-b-2 transition ${
+              activeTab === "groups"
+                ? "border-indigo-600 bg-white text-indigo-700 shadow-xs"
+                : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            Groups ({researchGroups.length})
+          </Link>
+          <Link
+            href="/admin?tab=accounts"
+            className={`px-4 py-2.5 font-semibold rounded-t-lg border-b-2 transition ${
+              activeTab === "accounts"
+                ? "border-indigo-600 bg-white text-indigo-700 shadow-xs"
+                : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            Accounts
           </Link>
         </div>
 
@@ -739,11 +1100,19 @@ export default async function AdminPage(props: {
             {/* Researcher List */}
             <div className="lg:col-span-7">
               <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-lg font-bold text-slate-900">
-                  Existing Researchers ({researchers.length})
+                <h2 className="text-lg font-bold text-slate-900 mb-3">
+                  Existing Researchers ({displayedResearchers.length})
                 </h2>
+
+                <AdminFilterSortBar
+                  activeTab="researchers"
+                  filterQ={filterQ}
+                  filterStatus={filterStatus}
+                  filterSort={filterSort}
+                />
+
                 <div className="mt-4 divide-y divide-slate-100">
-                  {researchers.map((r) => {
+                  {displayedResearchers.map((r) => {
                     const rAreas = r.researcher_research_areas
                       ?.map((rra) => toItem(rra.research_areas))
                       .filter((item): item is { id: string; name: string } => Boolean(item));
@@ -783,6 +1152,13 @@ export default async function AdminPage(props: {
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0">
+                          <Link
+                            href={`/researchers/${r.slug}`}
+                            target="_blank"
+                            className="rounded border border-indigo-200 bg-indigo-50/70 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition"
+                          >
+                            Preview Profile &nearr;
+                          </Link>
                           <Link
                             href={`/admin?tab=researchers&editResearcher=${r.id}`}
                             className="rounded border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
@@ -1003,82 +1379,134 @@ export default async function AdminPage(props: {
             {/* Projects List */}
             <div className="lg:col-span-7">
               <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-lg font-bold text-slate-900">
-                  Existing Projects ({projects.length})
-                </h2>
-                <div className="mt-4 divide-y divide-slate-100">
-                  {projects.map((p) => {
-                    const pTeam = p.project_researchers
-                      ?.map((pr) => toItem(pr.researchers))
-                      .filter((item): item is { id: string; name: string } => Boolean(item));
-                    const pAreas = p.project_research_areas
-                      ?.map((pra) => toItem(pra.research_areas))
-                      .filter((item): item is { id: string; name: string } => Boolean(item));
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-lg font-bold text-slate-900">
+                    Existing Projects ({displayedProjects.length})
+                  </h2>
+                  {editingProject && (
+                    <Link
+                      href={`/projects/${editingProject.slug}?preview=true`}
+                      target="_blank"
+                      className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1"
+                    >
+                      <span>Preview Selected Project</span>
+                      <span>&nearr;</span>
+                    </Link>
+                  )}
+                </div>
 
-                    return (
-                      <div key={p.id} className="py-4 flex flex-wrap items-center justify-between gap-4">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <Link
-                              href={`/projects/${p.slug}`}
-                              target="_blank"
-                              className="font-bold text-slate-900 hover:text-indigo-600 transition"
-                            >
-                              {p.title}
-                            </Link>
-                            <span className="rounded bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700">
-                              {p.status}
-                            </span>
-                            {p.is_demo ? (
-                              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
-                                Demo
-                              </span>
-                            ) : null}
-                          </div>
-                          <p className="text-xs text-slate-500 mt-1 line-clamp-2">{p.description}</p>
+                <AdminFilterSortBar
+                  activeTab="projects"
+                  filterQ={filterQ}
+                  filterStatus={filterStatus}
+                  filterSort={filterSort}
+                  statusOptions={[
+                    { value: "ongoing", label: "Ongoing" },
+                    { value: "planned", label: "Planned (Draft)" },
+                    { value: "completed", label: "Completed" },
+                    { value: "on_hold", label: "On Hold" },
+                  ]}
+                />
 
-                          {pTeam && pTeam.length > 0 ? (
-                            <div className="mt-2 text-xs text-slate-600">
-                              <span className="font-semibold text-slate-400">Team: </span>
-                              {pTeam.map((t) => t.name).join(", ")}
-                            </div>
-                          ) : null}
+                <form action={bulkEntityAction}>
+                  <input type="hidden" name="entity_type" value="projects" />
+                  <AdminBulkActionBar
+                    statusOptions={[
+                      { value: "ongoing", label: "Ongoing" },
+                      { value: "planned", label: "Planned (Draft)" },
+                      { value: "completed", label: "Completed" },
+                    ]}
+                  />
 
-                          {pAreas && pAreas.length > 0 ? (
-                            <div className="mt-2 flex flex-wrap gap-1">
-                              {pAreas.map((a) => (
-                                <span
-                                  key={a.id}
-                                  className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600"
+                  <div className="mt-4 divide-y divide-slate-100">
+                    {displayedProjects.map((p) => {
+                      const pTeam = p.project_researchers
+                        ?.map((pr) => toItem(pr.researchers))
+                        .filter((item): item is { id: string; name: string } => Boolean(item));
+                      const pAreas = p.project_research_areas
+                        ?.map((pra) => toItem(pra.research_areas))
+                        .filter((item): item is { id: string; name: string } => Boolean(item));
+
+                      return (
+                        <div key={p.id} className="py-4 flex flex-wrap items-start justify-between gap-4">
+                          <div className="flex items-start gap-3">
+                            <input
+                              type="checkbox"
+                              name="selected_ids"
+                              value={p.id}
+                              className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <Link
+                                  href={`/projects/${p.slug}`}
+                                  target="_blank"
+                                  className="font-bold text-slate-900 hover:text-indigo-600 transition"
                                 >
-                                  {a.name}
+                                  {p.title}
+                                </Link>
+                                <span className="rounded bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700">
+                                  {p.status}
                                 </span>
-                              ))}
-                            </div>
-                          ) : null}
-                        </div>
+                                {p.is_demo ? (
+                                  <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
+                                    Demo
+                                  </span>
+                                ) : null}
+                              </div>
+                              <p className="text-xs text-slate-500 mt-1 line-clamp-2">{p.description}</p>
 
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Link
-                            href={`/admin?tab=projects&editProject=${p.id}`}
-                            className="rounded border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                          >
-                            Edit
-                          </Link>
-                          <form action={deleteProjectAction}>
-                            <input type="hidden" name="id" value={p.id} />
+                              {pTeam && pTeam.length > 0 ? (
+                                <div className="mt-2 text-xs text-slate-600">
+                                  <span className="font-semibold text-slate-400">Team: </span>
+                                  {pTeam.map((t) => t.name).join(", ")}
+                                </div>
+                              ) : null}
+
+                              {pAreas && pAreas.length > 0 ? (
+                                <div className="mt-2 flex flex-wrap gap-1">
+                                  {pAreas.map((a) => (
+                                    <span
+                                      key={a.id}
+                                      className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600"
+                                    >
+                                      {a.name}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Link
+                              href={`/projects/${p.slug}?preview=true`}
+                              target="_blank"
+                              className="rounded border border-indigo-200 bg-indigo-50/70 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition"
+                            >
+                              Preview &nearr;
+                            </Link>
+                            <Link
+                              href={`/admin?tab=projects&editProject=${p.id}`}
+                              className="rounded border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                            >
+                              Edit
+                            </Link>
                             <button
+                              formAction={deleteProjectAction}
+                              name="id"
+                              value={p.id}
                               type="submit"
                               className="rounded border border-red-200 bg-white px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
                             >
                               Delete
                             </button>
-                          </form>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                </form>
               </section>
             </div>
           </div>
@@ -1190,6 +1618,1153 @@ export default async function AdminPage(props: {
               </div>
             )}
           </section>
+        ) : null}
+
+        {/* TAB: EVENTS MANAGEMENT */}
+        {activeTab === "events" ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-slate-900">Events Directory</h2>
+                <span className="text-xs text-slate-500">{displayedEvents.length} records</span>
+              </div>
+
+              <AdminFilterSortBar
+                activeTab="events"
+                filterQ={filterQ}
+                filterStatus={filterStatus}
+                filterSort={filterSort}
+                statusOptions={[
+                  { value: "upcoming", label: "Upcoming" },
+                  { value: "draft", label: "Draft (Preview Only)" },
+                  { value: "ongoing", label: "Ongoing" },
+                  { value: "completed", label: "Completed" },
+                  { value: "archived", label: "Archived" },
+                ]}
+              />
+
+              <form action={bulkEntityAction}>
+                <input type="hidden" name="entity_type" value="events" />
+                <AdminBulkActionBar
+                  statusOptions={[
+                    { value: "upcoming", label: "Upcoming" },
+                    { value: "draft", label: "Draft" },
+                    { value: "completed", label: "Completed" },
+                    { value: "archived", label: "Archived" },
+                  ]}
+                />
+
+                <div className="space-y-3 mt-4">
+                  {displayedEvents.map((evt) => (
+                    <div
+                      key={evt.id}
+                      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs flex items-start justify-between gap-4"
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          name="selected_ids"
+                          value={evt.id}
+                          className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-cyan-50 text-cyan-700 border border-cyan-200">
+                              {evt.type.replace(/_/g, " ")}
+                            </span>
+                            <span className="text-xs font-semibold text-slate-700">{evt.status}</span>
+                          </div>
+                          <h3 className="text-sm font-bold text-slate-900">{evt.title}</h3>
+                          <p className="text-xs text-slate-500 line-clamp-2">{evt.description}</p>
+                          <p className="text-[11px] text-slate-400">
+                            {evt.start_date ? new Date(evt.start_date).toLocaleDateString() : "TBA"} &bull; {evt.location || "Online"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Link
+                          href={`/events/${evt.slug}?preview=true`}
+                          target="_blank"
+                          className="px-2.5 py-1 rounded-lg border border-indigo-200 bg-indigo-50/70 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition"
+                        >
+                          Preview &nearr;
+                        </Link>
+                        <Link
+                          href={`/admin?tab=events&editEvent=${evt.id}`}
+                          className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          formAction={deleteEventAction}
+                          name="id"
+                          value={evt.id}
+                          type="submit"
+                          className="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </form>
+            </div>
+
+            {/* Event Form */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 h-fit">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-slate-900">
+                  {editingEvent ? "Edit Event" : "Create New Event"}
+                </h3>
+                {editingEvent && (
+                  <Link
+                    href={`/events/${editingEvent.slug}?preview=true`}
+                    target="_blank"
+                    className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1"
+                  >
+                    <span>Preview Layout</span>
+                    <span>&nearr;</span>
+                  </Link>
+                )}
+              </div>
+              <form action={saveEventAction} className="space-y-3 text-xs">
+                {editingEvent && <input type="hidden" name="id" value={editingEvent.id} />}
+                <div>
+                  <label className="block font-semibold text-slate-700">Title *</label>
+                  <input
+                    type="text"
+                    name="title"
+                    required
+                    defaultValue={editingEvent?.title || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Slug *</label>
+                  <input
+                    type="text"
+                    name="slug"
+                    required
+                    defaultValue={editingEvent?.slug || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900 font-mono"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block font-semibold text-slate-700">Type</label>
+                    <select
+                      name="type"
+                      defaultValue={editingEvent?.type || "conference"}
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-900"
+                    >
+                      <option value="conference">Conference</option>
+                      <option value="workshop">Workshop</option>
+                      <option value="masterclass">Masterclass</option>
+                      <option value="seminar">Seminar</option>
+                      <option value="call_for_papers">Call for Papers</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-slate-700">Status</label>
+                    <select
+                      name="status"
+                      defaultValue={editingEvent?.status || "upcoming"}
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-900"
+                    >
+                      <option value="upcoming">Upcoming</option>
+                      <option value="draft">Draft (Preview Only)</option>
+                      <option value="ongoing">Ongoing</option>
+                      <option value="completed">Completed</option>
+                      <option value="archived">Archived</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Description *</label>
+                  <textarea
+                    name="description"
+                    rows={3}
+                    required
+                    defaultValue={editingEvent?.description || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block font-semibold text-slate-700">Start Date</label>
+                    <input
+                      type="datetime-local"
+                      name="start_date"
+                      defaultValue={editingEvent?.start_date ? editingEvent.start_date.substring(0, 16) : ""}
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-slate-700">End Date</label>
+                    <input
+                      type="datetime-local"
+                      name="end_date"
+                      defaultValue={editingEvent?.end_date ? editingEvent.end_date.substring(0, 16) : ""}
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-900"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Location</label>
+                  <input
+                    type="text"
+                    name="location"
+                    defaultValue={editingEvent?.location || ""}
+                    placeholder="e.g. Auditorium or Lab 3"
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Registration URL</label>
+                  <input
+                    type="text"
+                    name="registration_url"
+                    defaultValue={editingEvent?.registration_url || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Linked Research Area</label>
+                  <select
+                    name="research_area_id"
+                    defaultValue={editingEvent?.research_area_id || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-900"
+                  >
+                    <option value="">None</option>
+                    {areas.map((a) => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="pt-2 flex items-center justify-between">
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-slate-800 transition"
+                  >
+                    {editingEvent ? "Update Event" : "Save Event"}
+                  </button>
+                  {editingEvent && (
+                    <Link
+                      href="/admin?tab=events"
+                      className="text-xs text-slate-500 hover:text-slate-800"
+                    >
+                      Cancel
+                    </Link>
+                  )}
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : null}
+
+        {/* TAB: OPPORTUNITIES MANAGEMENT */}
+        {activeTab === "opportunities" ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-slate-900">Grants &amp; Opportunities</h2>
+                <span className="text-xs text-slate-500">{displayedOpportunities.length} records</span>
+              </div>
+
+              <AdminFilterSortBar
+                activeTab="opportunities"
+                filterQ={filterQ}
+                filterStatus={filterStatus}
+                filterSort={filterSort}
+                statusOptions={[
+                  { value: "open", label: "Open" },
+                  { value: "draft", label: "Draft (Preview Only)" },
+                  { value: "closed", label: "Closed" },
+                  { value: "archived", label: "Archived" },
+                ]}
+              />
+
+              <form action={bulkEntityAction}>
+                <input type="hidden" name="entity_type" value="opportunities" />
+                <AdminBulkActionBar
+                  statusOptions={[
+                    { value: "open", label: "Open" },
+                    { value: "draft", label: "Draft" },
+                    { value: "closed", label: "Closed" },
+                    { value: "archived", label: "Archived" },
+                  ]}
+                />
+
+                <div className="space-y-3 mt-4">
+                  {displayedOpportunities.map((op) => (
+                    <div
+                      key={op.id}
+                      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs flex items-start justify-between gap-4"
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          name="selected_ids"
+                          value={op.id}
+                          className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
+                              {op.type.replace(/_/g, " ")}
+                            </span>
+                            <span className="text-xs font-semibold text-slate-700">{op.status}</span>
+                          </div>
+                          <h3 className="text-sm font-bold text-slate-900">{op.title}</h3>
+                          <p className="text-xs text-slate-500 line-clamp-2">{op.description}</p>
+                          <p className="text-[11px] text-slate-400">
+                            Award: <strong className="text-slate-700">{op.amount || "Institutional"}</strong> &bull; Deadline: <strong className="text-rose-700">{op.deadline || "Open"}</strong>
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Link
+                          href={`/opportunities/${op.slug}?preview=true`}
+                          target="_blank"
+                          className="px-2.5 py-1 rounded-lg border border-indigo-200 bg-indigo-50/70 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition"
+                        >
+                          Preview &nearr;
+                        </Link>
+                        <Link
+                          href={`/admin?tab=opportunities&editOpportunity=${op.id}`}
+                          className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          formAction={deleteOpportunityAction}
+                          name="id"
+                          value={op.id}
+                          type="submit"
+                          className="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </form>
+            </div>
+
+            {/* Opportunity Form */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 h-fit">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-slate-900">
+                  {editingOpportunity ? "Edit Opportunity" : "Create Opportunity"}
+                </h3>
+                {editingOpportunity && (
+                  <Link
+                    href={`/opportunities/${editingOpportunity.slug}?preview=true`}
+                    target="_blank"
+                    className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1"
+                  >
+                    <span>Preview Layout</span>
+                    <span>&nearr;</span>
+                  </Link>
+                )}
+              </div>
+              <form action={saveOpportunityAction} className="space-y-3 text-xs">
+                {editingOpportunity && <input type="hidden" name="id" value={editingOpportunity.id} />}
+                <div>
+                  <label className="block font-semibold text-slate-700">Title *</label>
+                  <input
+                    type="text"
+                    name="title"
+                    required
+                    defaultValue={editingOpportunity?.title || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Slug *</label>
+                  <input
+                    type="text"
+                    name="slug"
+                    required
+                    defaultValue={editingOpportunity?.slug || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900 font-mono"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block font-semibold text-slate-700">Type</label>
+                    <select
+                      name="type"
+                      defaultValue={editingOpportunity?.type || "grant"}
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-900"
+                    >
+                      <option value="grant">Grant</option>
+                      <option value="student_opportunity">Student Fellowship</option>
+                      <option value="research_assistantship">Assistantship</option>
+                      <option value="call_for_papers">Call for Papers</option>
+                      <option value="competition">Competition</option>
+                      <option value="funding">Funding</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-slate-700">Status</label>
+                    <select
+                      name="status"
+                      defaultValue={editingOpportunity?.status || "open"}
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-900"
+                    >
+                      <option value="open">Open</option>
+                      <option value="draft">Draft (Preview Only)</option>
+                      <option value="closed">Closed</option>
+                      <option value="archived">Archived</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Description *</label>
+                  <textarea
+                    name="description"
+                    rows={3}
+                    required
+                    defaultValue={editingOpportunity?.description || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block font-semibold text-slate-700">Amount</label>
+                    <input
+                      type="text"
+                      name="amount"
+                      defaultValue={editingOpportunity?.amount || ""}
+                      placeholder="e.g. NPR 500,000"
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-slate-700">Deadline</label>
+                    <input
+                      type="date"
+                      name="deadline"
+                      defaultValue={editingOpportunity?.deadline || ""}
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Provider</label>
+                  <input
+                    type="text"
+                    name="provider"
+                    defaultValue={editingOpportunity?.provider || ""}
+                    placeholder="e.g. Islington R&D Committee"
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div className="pt-2 flex items-center justify-between">
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-slate-800 transition"
+                  >
+                    {editingOpportunity ? "Update Opportunity" : "Save Opportunity"}
+                  </button>
+                  {editingOpportunity && (
+                    <Link
+                      href="/admin?tab=opportunities"
+                      className="text-xs text-slate-500 hover:text-slate-800"
+                    >
+                      Cancel
+                    </Link>
+                  )}
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : null}
+
+        {/* TAB: RESOURCES MANAGEMENT */}
+        {activeTab === "resources" ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-slate-900">Guidelines &amp; SOPs</h2>
+                <span className="text-xs text-slate-500">{displayedResources.length} documents</span>
+              </div>
+
+              <AdminFilterSortBar
+                activeTab="resources"
+                filterQ={filterQ}
+                filterStatus={filterStatus}
+                filterSort={filterSort}
+                statusOptions={[
+                  { value: "ethics", label: "Ethics & IRB" },
+                  { value: "ai_ethics", label: "AI Ethics" },
+                  { value: "academic_writing", label: "Academic Writing" },
+                  { value: "templates", label: "Templates" },
+                  { value: "publication_support", label: "Publication Support" },
+                  { value: "data_protection", label: "Data Protection" },
+                ]}
+              />
+
+              <form action={bulkEntityAction}>
+                <input type="hidden" name="entity_type" value="resources" />
+                <AdminBulkActionBar
+                  statusOptions={[
+                    { value: "published", label: "Published" },
+                    { value: "draft", label: "Draft" },
+                    { value: "archived", label: "Archived" },
+                  ]}
+                />
+
+                <div className="space-y-3 mt-4">
+                  {displayedResources.map((res) => (
+                    <div
+                      key={res.id}
+                      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs flex items-start justify-between gap-4"
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          name="selected_ids"
+                          value={res.id}
+                          className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <div className="space-y-1">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
+                            {res.category.replace(/_/g, " ")}
+                          </span>
+                          <h3 className="text-sm font-bold text-slate-900">{res.title}</h3>
+                          <p className="text-xs text-slate-500 line-clamp-2">{res.description}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Link
+                          href={`/resources/${res.slug}?preview=true`}
+                          target="_blank"
+                          className="px-2.5 py-1 rounded-lg border border-indigo-200 bg-indigo-50/70 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition"
+                        >
+                          Preview &nearr;
+                        </Link>
+                        <Link
+                          href={`/admin?tab=resources&editResource=${res.id}`}
+                          className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          formAction={deleteResourceAction}
+                          name="id"
+                          value={res.id}
+                          type="submit"
+                          className="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </form>
+            </div>
+
+            {/* Resource Form */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 h-fit">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-slate-900">
+                  {editingResource ? "Edit Resource" : "Create Resource"}
+                </h3>
+                {editingResource && (
+                  <Link
+                    href={`/resources/${editingResource.slug}?preview=true`}
+                    target="_blank"
+                    className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1"
+                  >
+                    <span>Preview Layout</span>
+                    <span>&nearr;</span>
+                  </Link>
+                )}
+              </div>
+              <form action={saveResourceAction} className="space-y-3 text-xs">
+                {editingResource && <input type="hidden" name="id" value={editingResource.id} />}
+                <div>
+                  <label className="block font-semibold text-slate-700">Title *</label>
+                  <input
+                    type="text"
+                    name="title"
+                    required
+                    defaultValue={editingResource?.title || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Slug *</label>
+                  <input
+                    type="text"
+                    name="slug"
+                    required
+                    defaultValue={editingResource?.slug || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Category</label>
+                  <select
+                    name="category"
+                    defaultValue={editingResource?.category || "ethics"}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-900"
+                  >
+                    <option value="ethics">Ethics &amp; IRB</option>
+                    <option value="ai_ethics">AI Ethics</option>
+                    <option value="academic_writing">Academic Writing</option>
+                    <option value="templates">Templates</option>
+                    <option value="publication_support">Publication Support</option>
+                    <option value="data_protection">Data Protection</option>
+                    <option value="facilities">Lab Facilities</option>
+                    <option value="methodology">Methodology</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Summary *</label>
+                  <textarea
+                    name="description"
+                    rows={2}
+                    required
+                    defaultValue={editingResource?.description || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Full Content / SOP</label>
+                  <textarea
+                    name="content"
+                    rows={4}
+                    defaultValue={editingResource?.content || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Document URL</label>
+                  <input
+                    type="text"
+                    name="external_url"
+                    defaultValue={editingResource?.external_url || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div className="pt-2 flex items-center justify-between">
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-slate-800 transition"
+                  >
+                    {editingResource ? "Update Resource" : "Save Resource"}
+                  </button>
+                  {editingResource && (
+                    <Link
+                      href="/admin?tab=resources"
+                      className="text-xs text-slate-500 hover:text-slate-800"
+                    >
+                      Cancel
+                    </Link>
+                  )}
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : null}
+
+        {/* TAB: PARTNERS MANAGEMENT */}
+        {activeTab === "partners" ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-slate-900">Partners &amp; Ecosystem</h2>
+                <span className="text-xs text-slate-500">{displayedPartners.length} organizations</span>
+              </div>
+
+              <AdminFilterSortBar
+                activeTab="partners"
+                filterQ={filterQ}
+                filterStatus={filterStatus}
+                filterSort={filterSort}
+                statusOptions={[
+                  { value: "academic", label: "Academic Partner" },
+                  { value: "industry", label: "Industry Partner" },
+                  { value: "government", label: "Government" },
+                  { value: "community", label: "Community" },
+                ]}
+              />
+
+              <form action={bulkEntityAction}>
+                <input type="hidden" name="entity_type" value="partners" />
+                <AdminBulkActionBar
+                  statusOptions={[
+                    { value: "active", label: "Active" },
+                    { value: "inactive", label: "Inactive" },
+                  ]}
+                />
+
+                <div className="space-y-3 mt-4">
+                  {displayedPartners.map((pt) => (
+                    <div
+                      key={pt.id}
+                      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs flex items-start justify-between gap-4"
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          name="selected_ids"
+                          value={pt.id}
+                          className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <div className="space-y-1">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
+                            {pt.type.replace(/_/g, " ")}
+                          </span>
+                          <h3 className="text-sm font-bold text-slate-900">{pt.name}</h3>
+                          <p className="text-xs text-slate-500 line-clamp-2">{pt.description}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Link
+                          href={`/admin?tab=partners&editPartner=${pt.id}`}
+                          className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          formAction={deletePartnerAction}
+                          name="id"
+                          value={pt.id}
+                          type="submit"
+                          className="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </form>
+            </div>
+
+            {/* Partner Form */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 h-fit">
+              <h3 className="text-base font-bold text-slate-900">
+                {editingPartner ? "Edit Partner" : "Create Partner"}
+              </h3>
+              <form action={savePartnerAction} className="space-y-3 text-xs">
+                {editingPartner && <input type="hidden" name="id" value={editingPartner.id} />}
+                <div>
+                  <label className="block font-semibold text-slate-700">Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    required
+                    defaultValue={editingPartner?.name || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Slug *</label>
+                  <input
+                    type="text"
+                    name="slug"
+                    required
+                    defaultValue={editingPartner?.slug || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Partner Type</label>
+                  <select
+                    name="type"
+                    defaultValue={editingPartner?.type || "academic"}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-900"
+                  >
+                    <option value="academic">Academic / University</option>
+                    <option value="industry">Industry / Corporate</option>
+                    <option value="government">Government / National</option>
+                    <option value="community">Community / Civil Society</option>
+                    <option value="international">International Alliance</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Description *</label>
+                  <textarea
+                    name="description"
+                    rows={3}
+                    required
+                    defaultValue={editingPartner?.description || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Website URL</label>
+                  <input
+                    type="url"
+                    name="website_url"
+                    defaultValue={editingPartner?.website_url || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div className="pt-2 flex items-center justify-between">
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-slate-800 transition"
+                  >
+                    {editingPartner ? "Update Partner" : "Save Partner"}
+                  </button>
+                  {editingPartner && (
+                    <Link
+                      href="/admin?tab=partners"
+                      className="text-xs text-slate-500 hover:text-slate-800"
+                    >
+                      Cancel
+                    </Link>
+                  )}
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : null}
+
+        {/* TAB: ANNOUNCEMENTS MANAGEMENT */}
+        {activeTab === "announcements" ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-slate-900">Announcements Feed</h2>
+                <span className="text-xs text-slate-500">{displayedAnnouncements.length} notices</span>
+              </div>
+
+              <AdminFilterSortBar
+                activeTab="announcements"
+                filterQ={filterQ}
+                filterStatus={filterStatus}
+                filterSort={filterSort}
+                statusOptions={[
+                  { value: "published", label: "Published" },
+                  { value: "draft", label: "Draft (Preview Only)" },
+                  { value: "archived", label: "Archived" },
+                ]}
+              />
+
+              <form action={bulkEntityAction}>
+                <input type="hidden" name="entity_type" value="announcements" />
+                <AdminBulkActionBar
+                  statusOptions={[
+                    { value: "published", label: "Published" },
+                    { value: "draft", label: "Draft" },
+                    { value: "archived", label: "Archived" },
+                  ]}
+                />
+
+                <div className="space-y-3 mt-4">
+                  {displayedAnnouncements.map((an) => (
+                    <div
+                      key={an.id}
+                      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs flex items-start justify-between gap-4"
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          name="selected_ids"
+                          value={an.id}
+                          className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-semibold text-slate-400">
+                              {new Date(an.published_at).toLocaleDateString()}
+                            </span>
+                            <span className="text-[10px] uppercase font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
+                              {an.status || "published"}
+                            </span>
+                          </div>
+                          <h3 className="text-sm font-bold text-slate-900">{an.title}</h3>
+                          <p className="text-xs text-slate-500 line-clamp-2">{an.summary}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Link
+                          href={`/announcements/${an.slug}?preview=true`}
+                          target="_blank"
+                          className="px-2.5 py-1 rounded-lg border border-indigo-200 bg-indigo-50/70 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition"
+                        >
+                          Preview &nearr;
+                        </Link>
+                        <Link
+                          href={`/admin?tab=announcements&editAnnouncement=${an.id}`}
+                          className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          formAction={deleteAnnouncementAction}
+                          name="id"
+                          value={an.id}
+                          type="submit"
+                          className="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </form>
+            </div>
+
+            {/* Announcement Form */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 h-fit">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-slate-900">
+                  {editingAnnouncement ? "Edit Announcement" : "Create Announcement"}
+                </h3>
+                {editingAnnouncement && (
+                  <Link
+                    href={`/announcements/${editingAnnouncement.slug}?preview=true`}
+                    target="_blank"
+                    className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1"
+                  >
+                    <span>Preview Layout</span>
+                    <span>&nearr;</span>
+                  </Link>
+                )}
+              </div>
+              <form action={saveAnnouncementAction} className="space-y-3 text-xs">
+                {editingAnnouncement && <input type="hidden" name="id" value={editingAnnouncement.id} />}
+                <div>
+                  <label className="block font-semibold text-slate-700">Title *</label>
+                  <input
+                    type="text"
+                    name="title"
+                    required
+                    defaultValue={editingAnnouncement?.title || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Slug *</label>
+                  <input
+                    type="text"
+                    name="slug"
+                    required
+                    defaultValue={editingAnnouncement?.slug || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Status</label>
+                  <select
+                    name="status"
+                    defaultValue={editingAnnouncement?.status || "published"}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-900"
+                  >
+                    <option value="published">Published</option>
+                    <option value="draft">Draft (Preview Only)</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Summary *</label>
+                  <textarea
+                    name="summary"
+                    rows={2}
+                    required
+                    defaultValue={editingAnnouncement?.summary || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Full Content *</label>
+                  <textarea
+                    name="content"
+                    rows={4}
+                    required
+                    defaultValue={editingAnnouncement?.content || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">External URL</label>
+                  <input
+                    type="url"
+                    name="external_url"
+                    defaultValue={editingAnnouncement?.external_url || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div className="pt-2 flex items-center justify-between">
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-slate-800 transition"
+                  >
+                    {editingAnnouncement ? "Update Announcement" : "Publish Announcement"}
+                  </button>
+                  {editingAnnouncement && (
+                    <Link
+                      href="/admin?tab=announcements"
+                      className="text-xs text-slate-500 hover:text-slate-800"
+                    >
+                      Cancel
+                    </Link>
+                  )}
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : null}
+
+        {/* TAB: RESEARCH GROUPS MANAGEMENT (Existing research_groups table) */}
+        {activeTab === "groups" ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-slate-900">Research Groups &amp; Labs</h2>
+                <span className="text-xs text-slate-500">{displayedGroups.length} recognized labs</span>
+              </div>
+
+              <AdminFilterSortBar
+                activeTab="groups"
+                filterQ={filterQ}
+                filterStatus={filterStatus}
+                filterSort={filterSort}
+              />
+
+              <div className="space-y-3">
+                {displayedGroups.map((g) => (
+                  <div
+                    key={g.id}
+                    className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs flex items-start justify-between gap-4"
+                  >
+                    <div className="space-y-1">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        Research Cluster
+                      </span>
+                      <h3 className="text-sm font-bold text-slate-900">{g.name}</h3>
+                      <p className="text-xs text-slate-500 line-clamp-2">{g.description}</p>
+                      {g.researchers && g.researchers.length > 0 && (
+                        <p className="text-[11px] text-cyan-700">
+                          Members: {g.researchers.map((r) => r.name).join(", ")}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Link
+                        href="/researchers"
+                        target="_blank"
+                        className="px-2.5 py-1 rounded-lg border border-indigo-200 bg-indigo-50/70 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition"
+                      >
+                        View in Public Directory &nearr;
+                      </Link>
+                      <Link
+                        href={`/admin?tab=groups&editGroup=${g.id}`}
+                        className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                      >
+                        Edit
+                      </Link>
+                      <form action={deleteResearchGroupAction}>
+                        <input type="hidden" name="id" value={g.id} />
+                        <button
+                          type="submit"
+                          className="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Group Form */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 h-fit">
+              <h3 className="text-base font-bold text-slate-900">
+                {editingGroup ? "Edit Research Group" : "Create Research Group"}
+              </h3>
+              <form action={saveResearchGroupAction} className="space-y-3 text-xs">
+                {editingGroup && <input type="hidden" name="id" value={editingGroup.id} />}
+                <div>
+                  <label className="block font-semibold text-slate-700">Lab / Group Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    required
+                    defaultValue={editingGroup?.name || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Slug *</label>
+                  <input
+                    type="text"
+                    name="slug"
+                    required
+                    defaultValue={editingGroup?.slug || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700">Description *</label>
+                  <textarea
+                    name="description"
+                    rows={3}
+                    required
+                    defaultValue={editingGroup?.description || ""}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Affiliated Faculty Members
+                  </label>
+                  <div className="max-h-32 overflow-y-auto rounded-lg border border-slate-200 p-2 space-y-1 bg-slate-50">
+                    {researchers.map((r) => {
+                      const isChecked = editingGroup?.researchers?.some((rf) => rf.id === r.id);
+                      return (
+                        <label key={r.id} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            name="researcher_ids"
+                            value={r.id}
+                            defaultChecked={isChecked}
+                            className="rounded text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <span>{r.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="pt-2 flex items-center justify-between">
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-slate-800 transition"
+                  >
+                    {editingGroup ? "Update Group" : "Save Group"}
+                  </button>
+                  {editingGroup && (
+                    <Link
+                      href="/admin?tab=groups"
+                      className="text-xs text-slate-500 hover:text-slate-800"
+                    >
+                      Cancel
+                    </Link>
+                  )}
+                </div>
+              </form>
+            </div>
+          </div>
         ) : null}
 
         {/* TAB 4: PROVISION ACCOUNTS */}

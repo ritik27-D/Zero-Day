@@ -2,6 +2,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import LayoutShell from "@/components/layout-shell";
+import { getEvents, getOpportunities, getAnnouncements } from "@/lib/hub-data";
 
 type ResearchAreaItem = {
   id: string;
@@ -96,7 +97,15 @@ export default async function HomePage() {
 
   const client = createSupabaseServerClient();
 
-  const [researchersRes, projectsRes, publicationsRes, areasRes] = await Promise.all([
+  const [
+    researchersRes,
+    projectsRes,
+    publicationsRes,
+    areasRes,
+    events,
+    opportunities,
+    announcements,
+  ] = await Promise.all([
     client
       .from("researchers")
       .select(`
@@ -131,6 +140,9 @@ export default async function HomePage() {
         project_research_areas ( project_id )
       `)
       .order("name"),
+    getEvents(),
+    getOpportunities(),
+    getAnnouncements(),
   ]);
 
   const researchers = (researchersRes.data ?? []) as unknown as ResearcherItem[];
@@ -138,11 +150,13 @@ export default async function HomePage() {
   const publications = (publicationsRes.data ?? []) as unknown as PublicationItem[];
   const areas = (areasRes.data ?? []) as unknown as ResearchAreaItem[];
 
-  // KPI Calculations
+  // Dynamic KPI Calculations
   const totalResearchers = researchers.length;
   const totalProjects = projects.length;
   const totalPublications = publications.length;
   const totalAreas = areas.length;
+  const totalEvents = events.length;
+  const totalOpportunities = opportunities.length;
 
   // Connected trail data: Find primary connected sample
   const primaryArea = areas.find((a) => a.slug === "artificial-intelligence") || areas[0];
@@ -158,10 +172,11 @@ export default async function HomePage() {
 
   return (
     <LayoutShell activeNav="home">
-      <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto space-y-8">
-        {/* HERO SECTION */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0c1120] via-[#11192e] to-[#1a233d] border border-slate-800/80 p-6 sm:p-10 text-white shadow-xl shadow-slate-950/20">
-          {/* Subtle Ambient Background Gradients */}
+      <div className="space-y-8 sm:space-y-10 lg:space-y-12">
+        {/* ========================================================================= */}
+        {/* 1. HERO / GLOBAL DISCOVERY                                               */}
+        {/* ========================================================================= */}
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0c1120] via-[#11192e] to-[#1a233d] border border-slate-800/80 p-6 sm:p-8 lg:p-10 text-white shadow-xl shadow-slate-950/20">
           <div className="absolute top-0 right-0 -mr-24 -mt-24 w-96 h-96 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-1/3 -mb-20 w-80 h-80 rounded-full bg-indigo-600/10 blur-3xl pointer-events-none" />
 
@@ -170,23 +185,20 @@ export default async function HomePage() {
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
               <span>ISLINGTON COLLEGE</span>
               <span className="text-slate-600">|</span>
-              <span className="text-slate-300 font-medium">Research &amp; Development Hub</span>
+              <span className="text-slate-300 font-medium">R&amp;D Connect Digital Hub</span>
             </div>
 
-            <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight">
-              Discover Research at <br className="hidden sm:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-indigo-300">
-                Islington College
-              </span>
+            <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight">
+              Discover Islington Research
             </h1>
 
-            <p className="mt-3 text-sm sm:text-base text-slate-300 max-w-2xl leading-relaxed">
-              Explore interconnected academic knowledge: query faculty specializations, ongoing funded projects,
-              peer-reviewed publications, and interdisciplinary focus areas powered by live database relationships.
+            <p className="mt-2.5 text-sm sm:text-base text-slate-300 max-w-2xl leading-relaxed">
+              Explore interconnected academic knowledge: query faculty researchers, active projects, scholarly
+              publications, academic events, funding opportunities, and research resources across Islington College.
             </p>
 
-            {/* Prominent Search Form */}
-            <form action="/discover" method="GET" className="mt-6 flex flex-col sm:flex-row items-stretch gap-2 max-w-2xl">
+            {/* Prominent Global Search Form */}
+            <form action="/discover" method="GET" className="mt-5 flex flex-col sm:flex-row items-stretch gap-2 max-w-2xl">
               <div className="relative flex-1">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,13 +208,13 @@ export default async function HomePage() {
                 <input
                   type="text"
                   name="q"
-                  placeholder="Try 'Artificial Intelligence', 'Sentinel', or 'Cybersecurity'..."
-                  className="w-full rounded-xl bg-slate-900/90 border border-slate-700/80 pl-11 pr-4 py-3.5 text-sm text-white placeholder:text-slate-400 focus:bg-slate-950 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 shadow-inner"
+                  placeholder="Search topics, faculty members, projects, symposia, grants..."
+                  className="w-full rounded-xl bg-slate-900/90 border border-slate-700/80 pl-11 pr-4 py-3 text-sm text-white placeholder:text-slate-400 focus:bg-slate-950 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 shadow-inner"
                 />
               </div>
               <button
                 type="submit"
-                className="px-6 py-3.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-sm transition shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+                className="px-6 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-sm transition shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 shrink-0 cursor-pointer"
               >
                 <span>Discover</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -212,7 +224,7 @@ export default async function HomePage() {
             </form>
 
             {/* Trending Research Area Pills */}
-            <div className="mt-5 flex flex-wrap items-center gap-2 text-xs">
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
               <span className="text-slate-400 font-semibold">Trending Areas:</span>
               {areas.map((area) => (
                 <Link
@@ -223,104 +235,148 @@ export default async function HomePage() {
                   {area.name}
                 </Link>
               ))}
+              <Link
+                href="/ijmr"
+                className="px-3 py-1 rounded-lg bg-cyan-950/60 text-cyan-300 hover:bg-cyan-900/80 border border-cyan-700/50 transition font-semibold text-[11px]"
+              >
+                IJMR Journal &rarr;
+              </Link>
             </div>
           </div>
         </section>
 
-        {/* KPI CARDS (Live Supabase counts) */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {/* Researchers KPI */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs hover:shadow-md transition group">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Faculty &amp; Fellows</span>
-              <div className="w-10 h-10 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-600 group-hover:scale-110 transition">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              </div>
+        {/* ========================================================================= */}
+        {/* 2. DYNAMIC STATISTICS (6 Core Metrics)                                   */}
+        {/* ========================================================================= */}
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Institutional Research Metrics
+              </h2>
+              <p className="text-sm font-bold text-slate-900">
+                Live Data Snapshot
+              </p>
             </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl sm:text-4xl font-black text-slate-900">{totalResearchers}</span>
-              <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">Active</span>
-            </div>
-            <p className="mt-2 text-xs text-slate-600 flex items-center justify-between">
-              <span>Researchers &amp; Lecturers</span>
-              <Link href="/researchers" className="text-cyan-600 font-semibold hover:underline">
-                View &rarr;
-              </Link>
-            </p>
+            <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+              Live Database
+            </span>
           </div>
 
-          {/* Projects KPI */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs hover:shadow-md transition group">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Active Initiatives</span>
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+            {/* Researchers */}
+            <Link
+              href="/researchers"
+              className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs hover:border-cyan-500 hover:shadow-md transition group"
+            >
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                Researchers
+              </span>
+              <div className="mt-1.5 flex items-baseline gap-1.5">
+                <span className="text-2xl sm:text-3xl font-black text-slate-900">{totalResearchers}</span>
+                <span className="text-[10px] font-bold text-cyan-600 bg-cyan-50 px-1 py-0.5 rounded">Faculty</span>
               </div>
-            </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl sm:text-4xl font-black text-slate-900">{totalProjects}</span>
-              <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">Ongoing / Planned</span>
-            </div>
-            <p className="mt-2 text-xs text-slate-600 flex items-center justify-between">
-              <span>Research Projects</span>
-              <Link href="/discover?q=project" className="text-indigo-600 font-semibold hover:underline">
-                Explore &rarr;
-              </Link>
-            </p>
-          </div>
+              <p className="mt-2 text-[11px] text-slate-500 group-hover:text-cyan-700 flex items-center justify-between transition">
+                <span>View Directory</span>
+                <span>&rarr;</span>
+              </p>
+            </Link>
 
-          {/* Publications KPI */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs hover:shadow-md transition group">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Publications</span>
-              <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600 group-hover:scale-110 transition">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
+            {/* Projects */}
+            <Link
+              href="/discover?q=project"
+              className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs hover:border-indigo-500 hover:shadow-md transition group"
+            >
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                Projects
+              </span>
+              <div className="mt-1.5 flex items-baseline gap-1.5">
+                <span className="text-2xl sm:text-3xl font-black text-slate-900">{totalProjects}</span>
+                <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded">Active</span>
               </div>
-            </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl sm:text-4xl font-black text-slate-900">{totalPublications}</span>
-              <span className="text-xs font-semibold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded">Indexed</span>
-            </div>
-            <p className="mt-2 text-xs text-slate-600 flex items-center justify-between">
-              <span>Articles &amp; Manuscripts</span>
-              <Link href="/discover?q=publication" className="text-teal-600 font-semibold hover:underline">
-                Read &rarr;
-              </Link>
-            </p>
-          </div>
+              <p className="mt-2 text-[11px] text-slate-500 group-hover:text-indigo-700 flex items-center justify-between transition">
+                <span>Explore Projects</span>
+                <span>&rarr;</span>
+              </p>
+            </Link>
 
-          {/* Research Areas KPI */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs hover:shadow-md transition group">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Core Topics</span>
-              <div className="w-10 h-10 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-600 group-hover:scale-110 transition">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                </svg>
+            {/* Publications */}
+            <Link
+              href="/discover?q=publication"
+              className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs hover:border-teal-500 hover:shadow-md transition group"
+            >
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                Publications
+              </span>
+              <div className="mt-1.5 flex items-baseline gap-1.5">
+                <span className="text-2xl sm:text-3xl font-black text-slate-900">{totalPublications}</span>
+                <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-1 py-0.5 rounded">Indexed</span>
               </div>
-            </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl sm:text-4xl font-black text-slate-900">{totalAreas}</span>
-              <span className="text-xs font-semibold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">Specialized</span>
-            </div>
-            <p className="mt-2 text-xs text-slate-600 flex items-center justify-between">
-              <span>Research Disciplines</span>
-              <Link href="/discover" className="text-violet-600 font-semibold hover:underline">
-                Explore &rarr;
-              </Link>
-            </p>
+              <p className="mt-2 text-[11px] text-slate-500 group-hover:text-teal-700 flex items-center justify-between transition">
+                <span>Browse Publications</span>
+                <span>&rarr;</span>
+              </p>
+            </Link>
+
+            {/* Research Areas */}
+            <Link
+              href="/discover"
+              className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs hover:border-violet-500 hover:shadow-md transition group"
+            >
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                Research Areas
+              </span>
+              <div className="mt-1.5 flex items-baseline gap-1.5">
+                <span className="text-2xl sm:text-3xl font-black text-slate-900">{totalAreas}</span>
+                <span className="text-[10px] font-bold text-violet-700 bg-violet-50 px-1 py-0.5 rounded">Domains</span>
+              </div>
+              <p className="mt-2 text-[11px] text-slate-500 group-hover:text-violet-700 flex items-center justify-between transition">
+                <span>Browse Topics</span>
+                <span>&rarr;</span>
+              </p>
+            </Link>
+
+            {/* Events */}
+            <Link
+              href="/events"
+              className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs hover:border-amber-500 hover:shadow-md transition group"
+            >
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                Events
+              </span>
+              <div className="mt-1.5 flex items-baseline gap-1.5">
+                <span className="text-2xl sm:text-3xl font-black text-slate-900">{totalEvents}</span>
+                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1 py-0.5 rounded">Upcoming</span>
+              </div>
+              <p className="mt-2 text-[11px] text-slate-500 group-hover:text-amber-700 flex items-center justify-between transition">
+                <span>View Event Calendar</span>
+                <span>&rarr;</span>
+              </p>
+            </Link>
+
+            {/* Opportunities */}
+            <Link
+              href="/opportunities"
+              className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs hover:border-emerald-500 hover:shadow-md transition group"
+            >
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                Opportunities
+              </span>
+              <div className="mt-1.5 flex items-baseline gap-1.5">
+                <span className="text-2xl sm:text-3xl font-black text-slate-900">{totalOpportunities}</span>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded">Open</span>
+              </div>
+              <p className="mt-2 text-[11px] text-slate-500 group-hover:text-emerald-700 flex items-center justify-between transition">
+                <span>Explore Grants &amp; Calls</span>
+                <span>&rarr;</span>
+              </p>
+            </Link>
           </div>
         </section>
 
         {/* CONNECTED RESEARCH TRAIL (Live Interactive Knowledge Graph) */}
-        <section className="rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-xs">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
+        <section className="rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-7 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-cyan-500 ring-4 ring-cyan-500/20" />
@@ -345,7 +401,7 @@ export default async function HomePage() {
           </div>
 
           {/* Graph Trail Visual Visualization */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4 relative">
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4 relative">
             {/* Step 1: Research Area */}
             <div className="relative rounded-2xl border-2 border-cyan-500/30 bg-gradient-to-b from-cyan-50/50 to-white p-5 flex flex-col justify-between shadow-sm">
               <div className="space-y-2">
@@ -474,299 +530,488 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* MAIN TWO-COLUMN DASHBOARD CONTENT (Center Grid & Right Sidebar) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* CENTER MAIN CONTENT (8 cols on lg) */}
-          <div className="lg:col-span-8 space-y-8">
-            {/* EXPLORE RESEARCH AREAS */}
-            <section className="rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-7 shadow-xs">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900">Explore Research Areas</h2>
-                  <p className="text-xs text-slate-600 mt-0.5">
-                    Select a research domain to view connected staff, publications, and initiatives.
-                  </p>
+        {/* ========================================================================= */}
+        {/* 4. R&D KNOWLEDGE HUB (Digital Hub Modular Entry Points)                   */}
+        {/* ========================================================================= */}
+        <section className="space-y-4 sm:space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-3.5">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                <span className="text-xs font-bold uppercase tracking-wider text-indigo-700">
+                  Digital Hub Architecture
+                </span>
+              </div>
+              <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+                R&amp;D Knowledge Hub
+              </h2>
+              <p className="mt-1 text-xs sm:text-sm text-slate-600 max-w-2xl">
+                Comprehensive academic infrastructure supporting the entire research lifecycle from funding and ethics to peer-reviewed dissemination.
+              </p>
+            </div>
+            <Link
+              href="/discover"
+              className="text-xs font-bold text-indigo-700 hover:text-indigo-900 hover:underline"
+            >
+              Search All Digital Hub &rarr;
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Card 1: Events & Symposia */}
+            <Link
+              href="/events"
+              className="rounded-2xl border border-slate-200 bg-white p-5 hover:border-indigo-400 hover:shadow-sm transition group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
+                    {totalEvents} Upcoming
+                  </span>
                 </div>
-                <Link
-                  href="/discover"
-                  className="text-xs font-bold text-cyan-700 hover:text-cyan-900 hover:underline"
-                >
-                  View All &rarr;
-                </Link>
+                <h3 className="mt-3 font-bold text-sm text-slate-900 group-hover:text-indigo-700 transition">
+                  Events &amp; Symposia
+                </h3>
+                <p className="mt-1 text-xs text-slate-600 leading-relaxed">
+                  Institutional conferences, seminars, workshops, and calls for papers across computing domains.
+                </p>
+              </div>
+              <span className="mt-4 pt-3 border-t border-slate-100 text-xs font-bold text-slate-700 group-hover:text-indigo-700 flex items-center justify-between">
+                <span>View Events Schedule</span>
+                <span>&rarr;</span>
+              </span>
+            </Link>
+
+            {/* Card 2: Opportunities & Funding */}
+            <Link
+              href="/opportunities"
+              className="rounded-2xl border border-slate-200 bg-white p-5 hover:border-emerald-400 hover:shadow-sm transition group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                    {totalOpportunities} Active Calls
+                  </span>
+                </div>
+                <h3 className="mt-3 font-bold text-sm text-slate-900 group-hover:text-emerald-700 transition">
+                  Opportunities &amp; Funding
+                </h3>
+                <p className="mt-1 text-xs text-slate-600 leading-relaxed">
+                  Faculty research seed grants, postgraduate assistantships, external funding, and student grants.
+                </p>
+              </div>
+              <span className="mt-4 pt-3 border-t border-slate-100 text-xs font-bold text-slate-700 group-hover:text-emerald-700 flex items-center justify-between">
+                <span>Explore Open Grants</span>
+                <span>&rarr;</span>
+              </span>
+            </Link>
+
+            {/* Card 3: Research Resources */}
+            <Link
+              href="/resources"
+              className="rounded-2xl border border-slate-200 bg-white p-5 hover:border-cyan-400 hover:shadow-sm transition group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase text-cyan-800 bg-cyan-50 px-2 py-0.5 rounded">
+                    Ethics &amp; SOPs
+                  </span>
+                </div>
+                <h3 className="mt-3 font-bold text-sm text-slate-900 group-hover:text-cyan-700 transition">
+                  Research Resources
+                </h3>
+                <p className="mt-1 text-xs text-slate-600 leading-relaxed">
+                  Standard operating procedures, IRB research ethics protocols, methodology guides, and templates.
+                </p>
+              </div>
+              <span className="mt-4 pt-3 border-t border-slate-100 text-xs font-bold text-slate-700 group-hover:text-cyan-700 flex items-center justify-between">
+                <span>Access Protocols</span>
+                <span>&rarr;</span>
+              </span>
+            </Link>
+
+            {/* Card 4: Research Groups & Labs */}
+            <Link
+              href="/researchers"
+              className="rounded-2xl border border-slate-200 bg-white p-5 hover:border-violet-400 hover:shadow-sm transition group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase text-violet-700 bg-violet-50 px-2 py-0.5 rounded">
+                    Specialized Clusters
+                  </span>
+                </div>
+                <h3 className="mt-3 font-bold text-sm text-slate-900 group-hover:text-violet-700 transition">
+                  Research Groups &amp; Labs
+                </h3>
+                <p className="mt-1 text-xs text-slate-600 leading-relaxed">
+                  Faculty clusters including Applied AI &amp; Intelligent Systems Group and Cyber Defense Lab.
+                </p>
+              </div>
+              <span className="mt-4 pt-3 border-t border-slate-100 text-xs font-bold text-slate-700 group-hover:text-violet-700 flex items-center justify-between">
+                <span>View Research Groups</span>
+                <span>&rarr;</span>
+              </span>
+            </Link>
+
+            {/* Card 5: Institutional Partners */}
+            <Link
+              href="/partners"
+              className="rounded-2xl border border-slate-200 bg-white p-5 hover:border-blue-400 hover:shadow-sm transition group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
+                    London Met &amp; Industry
+                  </span>
+                </div>
+                <h3 className="mt-3 font-bold text-sm text-slate-900 group-hover:text-blue-700 transition">
+                  Institutional Partners
+                </h3>
+                <p className="mt-1 text-xs text-slate-600 leading-relaxed">
+                  Academic collaboration with London Metropolitan University, enterprise engineering firms, and NGOs.
+                </p>
+              </div>
+              <span className="mt-4 pt-3 border-t border-slate-100 text-xs font-bold text-slate-700 group-hover:text-blue-700 flex items-center justify-between">
+                <span>View Partner Alliances</span>
+                <span>&rarr;</span>
+              </span>
+            </Link>
+
+            {/* Card 6: Announcements */}
+            <Link
+              href="/announcements"
+              className="rounded-2xl border border-slate-200 bg-white p-5 hover:border-rose-400 hover:shadow-sm transition group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase text-rose-700 bg-rose-50 px-2 py-0.5 rounded">
+                    Latest Notices
+                  </span>
+                </div>
+                <h3 className="mt-3 font-bold text-sm text-slate-900 group-hover:text-rose-700 transition">
+                  Announcements &amp; Calls
+                </h3>
+                <p className="mt-1 text-xs text-slate-600 leading-relaxed">
+                  Official R&amp;D notices, call for paper deadlines, seed grant cycles, and institutional updates.
+                </p>
+              </div>
+              <span className="mt-4 pt-3 border-t border-slate-100 text-xs font-bold text-slate-700 group-hover:text-rose-700 flex items-center justify-between">
+                <span>Read Institutional Notices</span>
+                <span>&rarr;</span>
+              </span>
+            </Link>
+
+            {/* Card 7: IJMR Journal Gateway */}
+            <Link
+              href="/ijmr"
+              className="rounded-2xl border border-cyan-300 bg-gradient-to-b from-cyan-50/40 to-white p-5 hover:border-cyan-500 hover:shadow-sm transition group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-cyan-100 text-cyan-800 flex items-center justify-center">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase text-cyan-800 bg-cyan-100 px-2 py-0.5 rounded">
+                    Peer-Reviewed
+                  </span>
+                </div>
+                <h3 className="mt-3 font-bold text-sm text-slate-900 group-hover:text-cyan-800 transition">
+                  IJMR Journal Gateway
+                </h3>
+                <p className="mt-1 text-xs text-slate-600 leading-relaxed">
+                  Islington Journal of Multidisciplinary Research — editorial guidelines, peer review, and submission portal.
+                </p>
+              </div>
+              <span className="mt-4 pt-3 border-t border-cyan-100 text-xs font-bold text-cyan-800 flex items-center justify-between">
+                <span>Submit Manuscript &rarr;</span>
+              </span>
+            </Link>
+
+            {/* Card 8: Research Areas */}
+            <Link
+              href="/discover"
+              className="rounded-2xl border border-slate-200 bg-white p-5 hover:border-slate-400 hover:shadow-sm transition group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                    {totalAreas} Disciplines
+                  </span>
+                </div>
+                <h3 className="mt-3 font-bold text-sm text-slate-900 group-hover:text-cyan-700 transition">
+                  Research Areas
+                </h3>
+                <p className="mt-1 text-xs text-slate-600 leading-relaxed">
+                  Interdisciplinary specializations linking faculty experts, publications, and grant applications.
+                </p>
+              </div>
+              <span className="mt-4 pt-3 border-t border-slate-100 text-xs font-bold text-slate-700 group-hover:text-cyan-700 flex items-center justify-between">
+                <span>Browse All Disciplines</span>
+                <span>&rarr;</span>
+              </span>
+            </Link>
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* 5. RECENT RESEARCH & ACTIVITY SECTION                                    */}
+        {/* ========================================================================= */}
+        <section className="space-y-4 sm:space-y-5">
+          <div className="flex items-center justify-between border-b border-slate-200/80 pb-3.5">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-teal-500" />
+                <span className="text-xs font-bold uppercase tracking-wider text-teal-700">
+                  Live Repository Feed
+                </span>
+              </div>
+              <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+                Recent Research &amp; Activity
+              </h2>
+              <p className="mt-1 text-xs sm:text-sm text-slate-600">
+                Latest peer-reviewed outputs, ongoing faculty investigations, and scheduled symposia.
+              </p>
+            </div>
+            <Link
+              href="/discover"
+              className="text-xs font-bold text-teal-700 hover:text-teal-900 hover:underline"
+            >
+              Browse Complete Catalog &rarr;
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
+            {/* Column 1: Recent Publications */}
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs space-y-4 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    Latest Publications
+                  </h3>
+                  <Link href="/discover?q=publication" className="text-xs font-semibold text-teal-700 hover:underline">
+                    All Papers &rarr;
+                  </Link>
+                </div>
+
+                <div className="mt-4 space-y-3.5">
+                  {publications.slice(0, 3).map((pub) => (
+                    <div key={pub.id} className="space-y-1">
+                      <Link
+                        href={`/discover?q=${encodeURIComponent(pub.title)}`}
+                        className="text-xs font-bold text-slate-900 hover:text-teal-700 block line-clamp-2 leading-snug"
+                      >
+                        {pub.title}
+                      </Link>
+                      <p className="text-[11px] text-slate-500 flex items-center gap-2 truncate">
+                        <span className="font-medium text-slate-700">{pub.venue}</span>
+                        {pub.published_at && (
+                          <>
+                            <span>&bull;</span>
+                            <span>{pub.published_at}</span>
+                          </>
+                        )}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {areas.map((area) => {
-                  const researcherCount = area.researcher_research_areas?.length || 0;
-                  const projectCount = area.project_research_areas?.length || 0;
-                  return (
-                    <Link
-                      key={area.id}
-                      href={`/discover?q=${encodeURIComponent(area.name)}`}
-                      className="group rounded-2xl border border-slate-200 p-5 hover:border-cyan-500 hover:bg-cyan-50/20 transition flex flex-col justify-between"
-                    >
-                      <div>
-                        <div className="flex items-center justify-between gap-2">
-                          <h3 className="font-bold text-sm text-slate-900 group-hover:text-cyan-800 transition">
-                            {area.name}
-                          </h3>
-                          {area.is_demo && (
-                            <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded uppercase">
+              <div className="pt-3 border-t border-slate-100 text-right">
+                <Link
+                  href="/discover?q=publication"
+                  className="text-xs font-bold text-teal-700 hover:underline"
+                >
+                  Explore Indexed Publications &rarr;
+                </Link>
+              </div>
+            </div>
+
+            {/* Column 2: Active Projects */}
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs space-y-4 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    Ongoing Projects
+                  </h3>
+                  <Link href="/discover?q=project" className="text-xs font-semibold text-indigo-700 hover:underline">
+                    All Projects &rarr;
+                  </Link>
+                </div>
+
+                <div className="mt-4 space-y-3.5">
+                  {projects.slice(0, 2).map((proj) => {
+                    const team = proj.project_researchers
+                      ?.map((pr) => toItem(pr.researchers))
+                      .filter(Boolean) || [];
+
+                    return (
+                      <div key={proj.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800">
+                            {proj.status}
+                          </span>
+                          {proj.is_demo && (
+                            <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-1 py-0.5 rounded uppercase">
                               Demo
                             </span>
                           )}
                         </div>
-                        <p className="mt-2 text-xs text-slate-600 line-clamp-2 leading-relaxed">
-                          {area.description}
-                        </p>
-                      </div>
-                      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold">
-                        <div className="flex items-center gap-3 text-slate-600">
-                          <span>{researcherCount} Faculty</span>
-                          <span>&bull;</span>
-                          <span>{projectCount} Projects</span>
-                        </div>
-                        <span className="text-cyan-700 group-hover:translate-x-1 transition font-bold">
-                          Explore &rarr;
-                        </span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </section>
-
-            {/* RECENT PUBLICATIONS */}
-            <section className="rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-7 shadow-xs">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900">Recent Publications &amp; Preprints</h2>
-                  <p className="text-xs text-slate-600 mt-0.5">
-                    Peer-reviewed articles, conference proceedings, and accepted submissions.
-                  </p>
-                </div>
-                <Link
-                  href="/discover?q=publication"
-                  className="text-xs font-bold text-teal-700 hover:text-teal-900 hover:underline"
-                >
-                  Browse Discovery &rarr;
-                </Link>
-              </div>
-
-              <div className="mt-5 space-y-4">
-                {publications.map((pub) => {
-                  const authors =
-                    pub.publication_researchers
-                      ?.map((pr) => toItem(pr.researchers))
-                      .filter(Boolean) || [];
-
-                  return (
-                    <div
-                      key={pub.id}
-                      className="rounded-2xl border border-slate-200 p-5 hover:border-slate-300 hover:bg-slate-50/50 transition"
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded ${
-                                pub.status === "published"
-                                  ? "bg-emerald-100 text-emerald-800"
-                                  : "bg-amber-100 text-amber-800"
-                              }`}
-                            >
-                              {pub.status}
-                            </span>
-                            {pub.is_demo && (
-                              <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded uppercase">
-                                Demo
-                              </span>
-                            )}
-                          </div>
-                          <h3 className="mt-2 text-sm font-bold text-slate-900 leading-snug">
-                            {pub.title}
-                          </h3>
-                          <p className="mt-1 text-xs text-slate-600 line-clamp-2 leading-relaxed">
-                            {pub.abstract}
-                          </p>
-                          <p className="mt-2 text-xs font-medium text-slate-600 flex items-center gap-2">
-                            <span className="font-semibold text-slate-700">{pub.venue}</span>
-                            {pub.published_at && (
-                              <>
-                                <span>&bull;</span>
-                                <span>{pub.published_at}</span>
-                              </>
-                            )}
-                          </p>
-                        </div>
-                        <div className="shrink-0 text-right">
-                          <Link
-                            href={`/discover?q=${encodeURIComponent(pub.title)}`}
-                            className="inline-flex items-center px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition"
-                          >
-                            Find in Graph
-                          </Link>
-                        </div>
-                      </div>
-
-                      {/* Authors Row */}
-                      {authors.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2">
-                          <span className="text-[11px] font-semibold text-slate-600">Authors:</span>
-                          {authors.map((author) => (
-                            <Link
-                              key={author?.id}
-                              href={`/researchers/${author?.slug}`}
-                              className="text-[11px] font-semibold text-indigo-700 hover:underline bg-indigo-50 px-2 py-0.5 rounded"
-                            >
-                              {author?.name}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          </div>
-
-          {/* RIGHT SIDEBAR DASHBOARD CONTENT (4 cols on lg) */}
-          <div className="lg:col-span-4 space-y-6">
-            {/* LIVE RESEARCH SNAPSHOT WIDGET */}
-            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-                  Research Snapshot
-                </h3>
-                <span className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Live Sync
-                </span>
-              </div>
-
-              <div className="mt-4 space-y-3 text-xs">
-                <div className="flex items-center justify-between py-2 border-b border-slate-50">
-                  <span className="text-slate-600">Database Engine</span>
-                  <span className="font-semibold text-slate-900">PostgreSQL (Supabase)</span>
-                </div>
-                <div className="flex items-center justify-between py-2 border-b border-slate-50">
-                  <span className="text-slate-600">Access Control (RLS)</span>
-                  <span className="font-semibold text-emerald-700">Strict Read-Only Public</span>
-                </div>
-                <div className="flex items-center justify-between py-2 border-b border-slate-50">
-                  <span className="text-slate-600">Graph Entities</span>
-                  <span className="font-bold text-slate-900">
-                    {totalResearchers + totalProjects + totalPublications + totalAreas} Nodes
-                  </span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-slate-600">Admin Operations</span>
-                  <span className="font-semibold text-indigo-700">Server Actions Only</span>
-                </div>
-              </div>
-
-              <div className="mt-5 pt-4 border-t border-slate-100">
-                <Link
-                  href="/login"
-                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition shadow-sm"
-                >
-                  <span>Researcher Portal</span>
-                  <span>&rarr;</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* TOP RESEARCH AREAS DISTRIBUTION */}
-            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-3">
-                Research Focus Distribution
-              </h3>
-
-              <div className="mt-4 space-y-4">
-                {areas.map((area, idx) => {
-                  const weight = (area.researcher_research_areas?.length || 0) + (area.project_research_areas?.length || 0);
-                  const percentage = Math.min(Math.round((weight / 6) * 100), 100);
-                  const colorClass =
-                    idx === 0
-                      ? "bg-cyan-500"
-                      : idx === 1
-                      ? "bg-indigo-500"
-                      : idx === 2
-                      ? "bg-teal-500"
-                      : "bg-violet-500";
-
-                  return (
-                    <div key={area.id} className="space-y-1.5">
-                      <div className="flex items-center justify-between text-xs">
                         <Link
-                          href={`/discover?q=${encodeURIComponent(area.name)}`}
-                          className="font-semibold text-slate-800 hover:text-cyan-700 truncate"
+                          href={`/projects/${proj.slug}`}
+                          className="text-xs font-bold text-slate-900 hover:text-indigo-700 block line-clamp-2 leading-snug"
                         >
-                          {area.name}
+                          {proj.title}
                         </Link>
-                        <span className="text-[11px] font-bold text-slate-500">{weight} links</span>
-                      </div>
-                      <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${colorClass}`}
-                          style={{ width: `${Math.max(percentage, 20)}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* FEATURED ACTIVE PROJECTS WIDGET */}
-            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xs">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-                  Featured Projects
-                </h3>
-                <Link href="/discover?q=project" className="text-xs font-bold text-indigo-700 hover:underline">
-                  All &rarr;
-                </Link>
-              </div>
-
-              <div className="mt-4 space-y-4">
-                {projects.map((proj) => {
-                  const team =
-                    proj.project_researchers
-                      ?.map((pr) => toItem(pr.researchers))
-                      .filter(Boolean) || [];
-
-                  return (
-                    <div key={proj.id} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-100 text-indigo-800">
-                          {proj.status}
-                        </span>
-                        {proj.start_date && (
-                          <span className="text-[10px] font-medium text-slate-500">
-                            Started {proj.start_date}
-                          </span>
+                        {team.length > 0 && (
+                          <p className="text-[11px] text-slate-500 truncate">
+                            Lead: {team[0]?.name}
+                          </p>
                         )}
                       </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 text-right">
+                <Link
+                  href="/discover?q=project"
+                  className="text-xs font-bold text-indigo-700 hover:underline"
+                >
+                  View Active Project Registry &rarr;
+                </Link>
+              </div>
+            </div>
+
+            {/* Column 3: Upcoming Events & Notices */}
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs space-y-4 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    Upcoming Events &amp; Notices
+                  </h3>
+                  <Link href="/events" className="text-xs font-semibold text-amber-700 hover:underline">
+                    Calendar &rarr;
+                  </Link>
+                </div>
+
+                <div className="mt-4 space-y-3.5">
+                  {events.slice(0, 2).map((ev) => (
+                    <div key={ev.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                          {ev.type.replace(/_/g, " ")}
+                        </span>
+                        <span className="text-[10px] font-medium text-slate-500">
+                          {ev.start_date ? new Date(ev.start_date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "TBA"}
+                        </span>
+                      </div>
                       <Link
-                        href={`/projects/${proj.slug}`}
-                        className="font-bold text-xs text-slate-900 hover:text-indigo-700 hover:underline block line-clamp-2"
+                        href={`/events/${ev.slug}`}
+                        className="text-xs font-bold text-slate-900 hover:text-amber-800 block line-clamp-2 leading-snug"
                       >
-                        {proj.title}
+                        {ev.title}
                       </Link>
-                      {team.length > 0 && (
+                      {ev.location && (
                         <p className="text-[11px] text-slate-500 truncate">
-                          Team: {team.map((t) => t?.name).join(", ")}
+                          {ev.location}
                         </p>
                       )}
                     </div>
-                  );
-                })}
+                  ))}
+                  {announcements.slice(0, 1).map((ann) => (
+                    <div key={ann.id} className="text-xs pt-1">
+                      <span className="text-[10px] font-bold text-rose-700 uppercase block">Notice</span>
+                      <Link href={`/announcements/${ann.slug}`} className="font-semibold text-slate-900 hover:text-rose-700 line-clamp-1">
+                        {ann.title}
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 text-right">
+                <Link
+                  href="/announcements"
+                  className="text-xs font-bold text-amber-700 hover:underline"
+                >
+                  View All Institutional Notices &rarr;
+                </Link>
               </div>
             </div>
           </div>
-        </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* 6. INSTITUTIONAL CALL-TO-ACTION                                          */}
+        {/* ========================================================================= */}
+        <section className="rounded-3xl border border-slate-800/80 bg-gradient-to-r from-slate-900 via-slate-850 to-indigo-950 p-6 sm:p-8 lg:p-9 text-white shadow-md flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="space-y-2 text-center sm:text-left max-w-xl">
+            <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">
+              Islington Academic Faculty &amp; Investigators
+            </span>
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+              Participate in Institutional Research &amp; Governance
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              Authorized faculty can submit new project proposals, update researcher biographies, link peer-reviewed
+              publications, and track submission approvals via the portal.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0 w-full sm:w-auto">
+            <Link
+              href="/login"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition shadow-md shadow-cyan-500/25 flex items-center justify-center gap-2 text-center cursor-pointer"
+            >
+              Sign in to Researcher Portal
+            </Link>
+            <Link
+              href="/admin/login"
+              className="w-full sm:w-auto px-4 py-3.5 rounded-xl bg-transparent hover:bg-white/10 text-slate-300 hover:text-white border border-slate-700 font-semibold text-xs text-center transition flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              Admin Governance
+            </Link>
+          </div>
+        </section>
       </div>
     </LayoutShell>
   );

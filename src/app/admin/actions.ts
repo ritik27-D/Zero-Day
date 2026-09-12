@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { getSubmissionById, updateSubmissionStatus } from "@/lib/submissions";
+import { logAdminActivity } from "@/lib/hub-data";
 
 export async function saveResearcherAction(formData: FormData) {
   await requireAdmin();
@@ -445,4 +446,508 @@ export async function provisionResearcherAccountAction(formData: FormData) {
   }
 
   redirect(`/admin?tab=accounts&success=${encodeURIComponent(`Account "${username}" successfully provisioned and linked.`)}`);
+}
+
+// ----------------------------------------------------------------------------
+// EVENTS CRUD ACTIONS
+// ----------------------------------------------------------------------------
+export async function saveEventAction(formData: FormData) {
+  await requireAdmin();
+
+  const id = formData.get("id")?.toString().trim() || null;
+  const title = formData.get("title")?.toString().trim() || "";
+  const slug = formData.get("slug")?.toString().trim().toLowerCase() || "";
+  const type = formData.get("type")?.toString().trim() || "conference";
+  const description = formData.get("description")?.toString().trim() || "";
+  const start_date = formData.get("start_date")?.toString().trim() || null;
+  const end_date = formData.get("end_date")?.toString().trim() || null;
+  const location = formData.get("location")?.toString().trim() || null;
+  const registration_url = formData.get("registration_url")?.toString().trim() || null;
+  const external_url = formData.get("external_url")?.toString().trim() || null;
+  const status = formData.get("status")?.toString().trim() || "upcoming";
+  const research_area_id = formData.get("research_area_id")?.toString().trim() || null;
+  const researcher_id = formData.get("researcher_id")?.toString().trim() || null;
+  const project_id = formData.get("project_id")?.toString().trim() || null;
+  const is_demo = formData.get("is_demo") === "on" || formData.get("is_demo") === "true";
+
+  if (!title || !slug || !description) {
+    redirect(`/admin?tab=events&error=${encodeURIComponent("Title, slug, and description are required.")}`);
+  }
+
+  const client = createSupabaseAdminClient();
+
+  try {
+    const payload = {
+      title,
+      slug,
+      type,
+      description,
+      start_date,
+      starts_at: start_date,
+      end_date,
+      ends_at: end_date,
+      location,
+      registration_url,
+      external_url,
+      status,
+      research_area_id,
+      researcher_id,
+      project_id,
+      is_demo,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (id) {
+      const { error } = await client.from("events").update(payload).eq("id", id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await client.from("events").insert(payload);
+      if (error) throw new Error(error.message);
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/events");
+    revalidatePath("/discover");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to save event";
+    redirect(`/admin?tab=events&error=${encodeURIComponent(msg)}`);
+  }
+
+  redirect(`/admin?tab=events&success=${encodeURIComponent(`Event "${title}" saved successfully.`)}`);
+}
+
+export async function deleteEventAction(formData: FormData) {
+  await requireAdmin();
+  const id = formData.get("id")?.toString().trim();
+  if (!id) redirect("/admin?tab=events");
+
+  const client = createSupabaseAdminClient();
+  try {
+    await client.from("events").delete().eq("id", id);
+    revalidatePath("/admin");
+    revalidatePath("/events");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to delete event";
+    redirect(`/admin?tab=events&error=${encodeURIComponent(msg)}`);
+  }
+  redirect("/admin?tab=events&success=Event+deleted+successfully.");
+}
+
+// ----------------------------------------------------------------------------
+// OPPORTUNITIES CRUD ACTIONS
+// ----------------------------------------------------------------------------
+export async function saveOpportunityAction(formData: FormData) {
+  await requireAdmin();
+
+  const id = formData.get("id")?.toString().trim() || null;
+  const title = formData.get("title")?.toString().trim() || "";
+  const slug = formData.get("slug")?.toString().trim().toLowerCase() || "";
+  const type = formData.get("type")?.toString().trim() || "grant";
+  const description = formData.get("description")?.toString().trim() || "";
+  const provider = formData.get("provider")?.toString().trim() || null;
+  const eligibility = formData.get("eligibility")?.toString().trim() || null;
+  const amount = formData.get("amount")?.toString().trim() || null;
+  const deadline = formData.get("deadline")?.toString().trim() || null;
+  const application_url = formData.get("application_url")?.toString().trim() || null;
+  const requirements = formData.get("requirements")?.toString().trim() || null;
+  const status = formData.get("status")?.toString().trim() || "open";
+  const research_area_id = formData.get("research_area_id")?.toString().trim() || null;
+  const project_id = formData.get("project_id")?.toString().trim() || null;
+  const is_demo = formData.get("is_demo") === "on" || formData.get("is_demo") === "true";
+
+  if (!title || !slug || !description) {
+    redirect(`/admin?tab=opportunities&error=${encodeURIComponent("Title, slug, and description are required.")}`);
+  }
+
+  const client = createSupabaseAdminClient();
+
+  try {
+    const payload = {
+      title,
+      slug,
+      type,
+      description,
+      provider,
+      eligibility,
+      amount,
+      deadline,
+      closing_date: deadline,
+      application_url,
+      url: application_url,
+      requirements,
+      status,
+      research_area_id,
+      project_id,
+      is_demo,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (id) {
+      const { error } = await client.from("opportunities").update(payload).eq("id", id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await client.from("opportunities").insert(payload);
+      if (error) throw new Error(error.message);
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/opportunities");
+    revalidatePath("/discover");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to save opportunity";
+    redirect(`/admin?tab=opportunities&error=${encodeURIComponent(msg)}`);
+  }
+
+  redirect(`/admin?tab=opportunities&success=${encodeURIComponent(`Opportunity "${title}" saved successfully.`)}`);
+}
+
+export async function deleteOpportunityAction(formData: FormData) {
+  await requireAdmin();
+  const id = formData.get("id")?.toString().trim();
+  if (!id) redirect("/admin?tab=opportunities");
+
+  const client = createSupabaseAdminClient();
+  try {
+    await client.from("opportunities").delete().eq("id", id);
+    revalidatePath("/admin");
+    revalidatePath("/opportunities");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to delete opportunity";
+    redirect(`/admin?tab=opportunities&error=${encodeURIComponent(msg)}`);
+  }
+  redirect("/admin?tab=opportunities&success=Opportunity+deleted+successfully.");
+}
+
+// ----------------------------------------------------------------------------
+// RESOURCES CRUD ACTIONS
+// ----------------------------------------------------------------------------
+export async function saveResourceAction(formData: FormData) {
+  await requireAdmin();
+
+  const id = formData.get("id")?.toString().trim() || null;
+  const title = formData.get("title")?.toString().trim() || "";
+  const slug = formData.get("slug")?.toString().trim().toLowerCase() || "";
+  const category = formData.get("category")?.toString().trim() || "ethics";
+  const description = formData.get("description")?.toString().trim() || "";
+  const content = formData.get("content")?.toString().trim() || null;
+  const external_url = formData.get("external_url")?.toString().trim() || null;
+  const research_area_id = formData.get("research_area_id")?.toString().trim() || null;
+  const status = formData.get("status")?.toString().trim() || "published";
+  const is_demo = formData.get("is_demo") === "on" || formData.get("is_demo") === "true";
+
+  if (!title || !slug || !description) {
+    redirect(`/admin?tab=resources&error=${encodeURIComponent("Title, slug, and description are required.")}`);
+  }
+
+  const client = createSupabaseAdminClient();
+
+  try {
+    const payload = {
+      title,
+      slug,
+      category,
+      description,
+      content,
+      external_url,
+      research_area_id,
+      status,
+      is_demo,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (id) {
+      const { error } = await client.from("resources").update(payload).eq("id", id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await client.from("resources").insert(payload);
+      if (error) throw new Error(error.message);
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/resources");
+    revalidatePath("/discover");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to save resource";
+    redirect(`/admin?tab=resources&error=${encodeURIComponent(msg)}`);
+  }
+
+  redirect(`/admin?tab=resources&success=${encodeURIComponent(`Resource "${title}" saved successfully.`)}`);
+}
+
+export async function deleteResourceAction(formData: FormData) {
+  await requireAdmin();
+  const id = formData.get("id")?.toString().trim();
+  if (!id) redirect("/admin?tab=resources");
+
+  const client = createSupabaseAdminClient();
+  try {
+    await client.from("resources").delete().eq("id", id);
+    revalidatePath("/admin");
+    revalidatePath("/resources");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to delete resource";
+    redirect(`/admin?tab=resources&error=${encodeURIComponent(msg)}`);
+  }
+  redirect("/admin?tab=resources&success=Resource+deleted+successfully.");
+}
+
+// ----------------------------------------------------------------------------
+// PARTNERS CRUD ACTIONS
+// ----------------------------------------------------------------------------
+export async function savePartnerAction(formData: FormData) {
+  await requireAdmin();
+
+  const id = formData.get("id")?.toString().trim() || null;
+  const name = formData.get("name")?.toString().trim() || "";
+  const slug = formData.get("slug")?.toString().trim().toLowerCase() || "";
+  const type = formData.get("type")?.toString().trim() || "academic";
+  const description = formData.get("description")?.toString().trim() || "";
+  const website_url = formData.get("website_url")?.toString().trim() || null;
+  const project_id = formData.get("project_id")?.toString().trim() || null;
+  const status = formData.get("status")?.toString().trim() || "active";
+  const is_demo = formData.get("is_demo") === "on" || formData.get("is_demo") === "true";
+
+  if (!name || !slug || !description) {
+    redirect(`/admin?tab=partners&error=${encodeURIComponent("Name, slug, and description are required.")}`);
+  }
+
+  const client = createSupabaseAdminClient();
+
+  try {
+    const payload = {
+      name,
+      slug,
+      type,
+      description,
+      website_url,
+      project_id,
+      status,
+      is_demo,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (id) {
+      const { error } = await client.from("partners").update(payload).eq("id", id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await client.from("partners").insert(payload);
+      if (error) throw new Error(error.message);
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/partners");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to save partner";
+    redirect(`/admin?tab=partners&error=${encodeURIComponent(msg)}`);
+  }
+
+  redirect(`/admin?tab=partners&success=${encodeURIComponent(`Partner "${name}" saved successfully.`)}`);
+}
+
+export async function deletePartnerAction(formData: FormData) {
+  await requireAdmin();
+  const id = formData.get("id")?.toString().trim();
+  if (!id) redirect("/admin?tab=partners");
+
+  const client = createSupabaseAdminClient();
+  try {
+    await client.from("partners").delete().eq("id", id);
+    revalidatePath("/admin");
+    revalidatePath("/partners");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to delete partner";
+    redirect(`/admin?tab=partners&error=${encodeURIComponent(msg)}`);
+  }
+  redirect("/admin?tab=partners&success=Partner+deleted+successfully.");
+}
+
+// ----------------------------------------------------------------------------
+// ANNOUNCEMENTS CRUD ACTIONS
+// ----------------------------------------------------------------------------
+export async function saveAnnouncementAction(formData: FormData) {
+  await requireAdmin();
+
+  const id = formData.get("id")?.toString().trim() || null;
+  const title = formData.get("title")?.toString().trim() || "";
+  const slug = formData.get("slug")?.toString().trim().toLowerCase() || "";
+  const summary = formData.get("summary")?.toString().trim() || "";
+  const content = formData.get("content")?.toString().trim() || "";
+  const external_url = formData.get("external_url")?.toString().trim() || null;
+  const status = formData.get("status")?.toString().trim() || "published";
+  const is_demo = formData.get("is_demo") === "on" || formData.get("is_demo") === "true";
+
+  if (!title || !slug || !summary || !content) {
+    redirect(`/admin?tab=announcements&error=${encodeURIComponent("Title, slug, summary, and content are required.")}`);
+  }
+
+  const client = createSupabaseAdminClient();
+
+  try {
+    const payload = {
+      title,
+      slug,
+      summary,
+      content,
+      external_url,
+      status,
+      is_demo,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (id) {
+      const { error } = await client.from("announcements").update(payload).eq("id", id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await client.from("announcements").insert(payload);
+      if (error) throw new Error(error.message);
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/announcements");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to save announcement";
+    redirect(`/admin?tab=announcements&error=${encodeURIComponent(msg)}`);
+  }
+
+  redirect(`/admin?tab=announcements&success=${encodeURIComponent(`Announcement "${title}" saved successfully.`)}`);
+}
+
+export async function deleteAnnouncementAction(formData: FormData) {
+  await requireAdmin();
+  const id = formData.get("id")?.toString().trim();
+  if (!id) redirect("/admin?tab=announcements");
+
+  const client = createSupabaseAdminClient();
+  try {
+    await client.from("announcements").delete().eq("id", id);
+    revalidatePath("/admin");
+    revalidatePath("/announcements");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to delete announcement";
+    redirect(`/admin?tab=announcements&error=${encodeURIComponent(msg)}`);
+  }
+  redirect("/admin?tab=announcements&success=Announcement+deleted+successfully.");
+}
+
+// ----------------------------------------------------------------------------
+// RESEARCH GROUPS CRUD ACTIONS (Reusing existing research_groups table)
+// ----------------------------------------------------------------------------
+export async function saveResearchGroupAction(formData: FormData) {
+  await requireAdmin();
+
+  const id = formData.get("id")?.toString().trim() || null;
+  const name = formData.get("name")?.toString().trim() || "";
+  const slug = formData.get("slug")?.toString().trim().toLowerCase() || "";
+  const description = formData.get("description")?.toString().trim() || "";
+  const is_demo = formData.get("is_demo") === "on" || formData.get("is_demo") === "true";
+  const researcher_ids = formData.getAll("researcher_ids").map((v) => v.toString());
+
+  if (!name || !slug || !description) {
+    redirect(`/admin?tab=groups&error=${encodeURIComponent("Name, slug, and description are required.")}`);
+  }
+
+  const client = createSupabaseAdminClient();
+
+  try {
+    let groupId = id;
+    const payload = {
+      name,
+      slug,
+      description,
+      is_demo,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (id) {
+      const { error } = await client.from("research_groups").update(payload).eq("id", id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { data: insData, error } = await client.from("research_groups").insert(payload).select("id").single();
+      if (error) throw new Error(error.message);
+      groupId = insData.id;
+    }
+
+    // Sync researcher affiliations in researcher_research_groups
+    if (groupId) {
+      await client.from("researcher_research_groups").delete().eq("research_group_id", groupId);
+      if (researcher_ids.length > 0) {
+        const rows = researcher_ids.map((rId) => ({
+          researcher_id: rId,
+          research_group_id: groupId,
+        }));
+        await client.from("researcher_research_groups").insert(rows);
+      }
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/researchers");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to save research group";
+    redirect(`/admin?tab=groups&error=${encodeURIComponent(msg)}`);
+  }
+
+  redirect(`/admin?tab=groups&success=${encodeURIComponent(`Research Group "${name}" saved successfully.`)}`);
+}
+
+export async function deleteResearchGroupAction(formData: FormData) {
+  await requireAdmin();
+  const id = formData.get("id")?.toString().trim();
+  if (!id) redirect("/admin?tab=groups");
+
+  const client = createSupabaseAdminClient();
+  try {
+    await client.from("research_groups").delete().eq("id", id);
+    revalidatePath("/admin");
+    revalidatePath("/researchers");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to delete research group";
+    redirect(`/admin?tab=groups&error=${encodeURIComponent(msg)}`);
+  }
+  redirect("/admin?tab=groups&success=Research+group+deleted+successfully.");
+}
+
+export async function bulkEntityAction(formData: FormData) {
+  await requireAdmin();
+  const entityType = String(formData.get("entity_type") || "").trim();
+  const bulkAction = String(formData.get("bulk_action") || "").trim();
+  const selectedIds = formData.getAll("selected_ids").map(String).filter(Boolean);
+
+  if (!entityType || selectedIds.length === 0) {
+    redirect(`/admin?tab=${entityType || "events"}&error=${encodeURIComponent("Please select at least one item to perform bulk action.")}`);
+  }
+
+  if (!bulkAction) {
+    redirect(`/admin?tab=${entityType}&error=${encodeURIComponent("Please select an action to apply to selected items.")}`);
+  }
+
+  const client = createSupabaseAdminClient();
+
+  try {
+    if (bulkAction === "delete") {
+      const { error } = await client.from(entityType).delete().in("id", selectedIds);
+      if (error) throw error;
+      await logAdminActivity(
+        "bulk_delete",
+        entityType,
+        `Bulk deleted ${selectedIds.length} records from ${entityType}.`
+      );
+    } else if (bulkAction.startsWith("status_")) {
+      const targetStatus = bulkAction.replace("status_", "");
+      const { error } = await client.from(entityType).update({ status: targetStatus }).in("id", selectedIds);
+      if (error) throw error;
+      await logAdminActivity(
+        "bulk_status_update",
+        entityType,
+        `Bulk updated ${selectedIds.length} records in ${entityType} to status '${targetStatus}'.`
+      );
+    }
+
+    revalidatePath("/admin");
+    revalidatePath(`/${entityType}`);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Bulk action failed";
+    redirect(`/admin?tab=${entityType}&error=${encodeURIComponent(msg)}`);
+  }
+
+  redirect(`/admin?tab=${entityType}&success=${encodeURIComponent(`Successfully processed bulk action on ${selectedIds.length} items.`)}`);
 }

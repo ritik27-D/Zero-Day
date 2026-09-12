@@ -55,6 +55,7 @@ function toItem<T>(val: T | T[] | null | undefined): T | null {
 
 export default async function ProjectDetailPage(props: {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ preview?: string }>;
 }) {
   await connection();
   if (!isSupabaseConfigured()) {
@@ -62,6 +63,8 @@ export default async function ProjectDetailPage(props: {
   }
 
   const { slug } = await props.params;
+  const searchParams = props.searchParams ? await props.searchParams : {};
+  const isPreview = searchParams.preview === "true";
   const client = createSupabaseServerClient();
 
   const { data, error } = await client
@@ -113,6 +116,19 @@ export default async function ProjectDetailPage(props: {
   return (
     <LayoutShell activeNav="projects">
       <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-8">
+        {/* Preview Banner */}
+        {isPreview && (
+          <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 text-xs font-semibold flex items-center justify-between shadow-2xs">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+              <span>PREVIEW MODE — Reviewing project proposal/record in draft state prior to public catalog indexing.</span>
+            </div>
+            <Link href="/admin?tab=projects" className="underline font-bold text-amber-950 hover:text-amber-800">
+              Return to Admin &rarr;
+            </Link>
+          </div>
+        )}
+
         {/* Navigation & Breadcrumbs */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
           <nav className="flex items-center gap-2 text-xs font-semibold text-slate-500">
