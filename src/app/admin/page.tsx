@@ -77,6 +77,335 @@ function toItem<T>(val: T | T[] | null | undefined): T | null {
   return Array.isArray(val) ? val[0] ?? null : val;
 }
 
+function formatVal(v: unknown): string {
+  if (v === null || v === undefined) return "—";
+  const str = String(v).trim();
+  return str.length > 0 ? str : "—";
+}
+
+function SubmissionPayloadCard({ sub }: { sub: Submission }) {
+  const p = (sub.payload || {}) as Record<string, unknown>;
+
+  if (sub.submission_type === "new_project" || sub.submission_type === "project_update") {
+    const title = formatVal(p.project_title || p.title);
+    const description = formatVal(p.description);
+    const status = formatVal(p.status);
+    const startDate = formatVal(p.start_date);
+    const endDate = formatVal(p.end_date);
+    const slug = formatVal(p.slug || p.project_slug);
+
+    return (
+      <div className="space-y-3">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-cyan-500" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">Project Details</h3>
+            </div>
+            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              {sub.submission_type === "new_project" ? "New Project" : "Project Update"}
+            </span>
+          </div>
+
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+              Project Title
+            </span>
+            <p className="mt-1 text-base font-bold text-slate-900">
+              {title}
+            </p>
+          </div>
+
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5">
+              Project Description
+            </span>
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
+              <p className="text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">
+                {description !== "—" ? description : (
+                  <span className="text-slate-400 italic">No description provided.</span>
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+            <div className="rounded-lg bg-white p-3 border border-slate-200 shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                Status
+              </span>
+              <span className="mt-1.5 inline-block px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-semibold uppercase text-[11px] border border-indigo-100">
+                {status}
+              </span>
+            </div>
+
+            <div className="rounded-lg bg-white p-3 border border-slate-200 shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                Timeline
+              </span>
+              <div className="mt-1 space-y-0.5 text-xs text-slate-700">
+                <p><span className="text-slate-400 font-medium">Start Date:</span> {startDate}</p>
+                <p><span className="text-slate-400 font-medium">End Date:</span> {endDate}</p>
+              </div>
+            </div>
+
+            <div className="rounded-lg bg-white p-3 border border-slate-200 shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                Project Slug
+              </span>
+              <p className="mt-1 font-mono text-xs text-slate-700 truncate">
+                {slug}
+              </p>
+            </div>
+          </div>
+
+          {p.project_id ? (
+            <div className="text-xs text-slate-500 border-t border-slate-200/80 pt-2.5">
+              <span className="font-semibold text-slate-600">Existing Target Project ID:</span>{" "}
+              <code className="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200">{String(p.project_id)}</code>
+            </div>
+          ) : null}
+        </div>
+
+        <details className="text-xs text-slate-500 group">
+          <summary className="cursor-pointer font-semibold text-slate-500 hover:text-slate-800 transition flex items-center gap-1.5 py-1 select-none w-fit">
+            <span>View raw payload</span>
+            <svg className="w-3.5 h-3.5 text-slate-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <div className="mt-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <pre className="font-mono text-[11px] text-slate-600 overflow-x-auto whitespace-pre-wrap">
+              {JSON.stringify(sub.payload, null, 2)}
+            </pre>
+          </div>
+        </details>
+      </div>
+    );
+  }
+
+  if (sub.submission_type === "profile_update") {
+    const title = formatVal(p.title || p.title_role);
+    const bio = formatVal(p.bio);
+
+    return (
+      <div className="space-y-3">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-cyan-500" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">Profile Update Details</h3>
+            </div>
+            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              Profile Revision
+            </span>
+          </div>
+
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+              Proposed Academic Title / Position
+            </span>
+            <p className="mt-1 text-sm font-bold text-slate-900">
+              {title}
+            </p>
+          </div>
+
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5">
+              Proposed Biography &amp; Research Statement
+            </span>
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
+              <p className="text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">
+                {bio !== "—" ? bio : (
+                  <span className="text-slate-400 italic">No biography provided.</span>
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <details className="text-xs text-slate-500 group">
+          <summary className="cursor-pointer font-semibold text-slate-500 hover:text-slate-800 transition flex items-center gap-1.5 py-1 select-none w-fit">
+            <span>View raw payload</span>
+            <svg className="w-3.5 h-3.5 text-slate-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <div className="mt-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <pre className="font-mono text-[11px] text-slate-600 overflow-x-auto whitespace-pre-wrap">
+              {JSON.stringify(sub.payload, null, 2)}
+            </pre>
+          </div>
+        </details>
+      </div>
+    );
+  }
+
+  if (sub.submission_type === "new_publication" || sub.submission_type === "publication_update") {
+    const pubTitle = formatVal(p.pub_title || p.title);
+    const abstract = formatVal(p.abstract);
+    const venue = formatVal(p.venue);
+    const status = formatVal(p.status);
+    const publishedAt = formatVal(p.published_at);
+    const doi = formatVal(p.doi);
+    const slug = formatVal(p.slug || p.pub_slug);
+
+    return (
+      <div className="space-y-3">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-cyan-500" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">Publication Details</h3>
+            </div>
+            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              {sub.submission_type === "new_publication" ? "New Publication" : "Publication Update"}
+            </span>
+          </div>
+
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+              Publication Title
+            </span>
+            <p className="mt-1 text-base font-bold text-slate-900">
+              {pubTitle}
+            </p>
+          </div>
+
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5">
+              Abstract &amp; Summary
+            </span>
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
+              <p className="text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">
+                {abstract !== "—" ? abstract : (
+                  <span className="text-slate-400 italic">No abstract provided.</span>
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-1">
+            <div className="rounded-lg bg-white p-3 border border-slate-200 shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                Target Venue
+              </span>
+              <p className="mt-1 text-xs font-medium text-slate-800">
+                {venue}
+              </p>
+            </div>
+
+            <div className="rounded-lg bg-white p-3 border border-slate-200 shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                Status
+              </span>
+              <span className="mt-1.5 inline-block px-2.5 py-0.5 rounded-md bg-purple-50 text-purple-700 font-semibold uppercase text-[11px] border border-purple-100">
+                {status}
+              </span>
+            </div>
+
+            <div className="rounded-lg bg-white p-3 border border-slate-200 shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                Published Date
+              </span>
+              <p className="mt-1 text-xs font-medium text-slate-800">
+                {publishedAt}
+              </p>
+            </div>
+
+            <div className="rounded-lg bg-white p-3 border border-slate-200 shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                DOI
+              </span>
+              <p className="mt-1 font-mono text-xs text-slate-700 truncate">
+                {doi}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-200/80">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                Publication Slug
+              </span>
+              <p className="mt-1 font-mono text-xs text-slate-700 truncate">
+                {slug}
+              </p>
+            </div>
+            {p.linked_project_id ? (
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                  Linked Project ID
+                </span>
+                <p className="mt-1 font-mono text-xs text-slate-700 truncate">
+                  {String(p.linked_project_id)}
+                </p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <details className="text-xs text-slate-500 group">
+          <summary className="cursor-pointer font-semibold text-slate-500 hover:text-slate-800 transition flex items-center gap-1.5 py-1 select-none w-fit">
+            <span>View raw payload</span>
+            <svg className="w-3.5 h-3.5 text-slate-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <div className="mt-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <pre className="font-mono text-[11px] text-slate-600 overflow-x-auto whitespace-pre-wrap">
+              {JSON.stringify(sub.payload, null, 2)}
+            </pre>
+          </div>
+        </details>
+      </div>
+    );
+  }
+
+  // Fallback for any other submission type
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5 space-y-3">
+        <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-cyan-500" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">Submission Details</h3>
+          </div>
+          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+            {sub.submission_type.replace(/_/g, " ")}
+          </span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          {Object.entries(p).map(([key, val]) => (
+            <div key={key} className="rounded-lg bg-white p-3 border border-slate-200 shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                {key.replace(/_/g, " ")}
+              </span>
+              <p className="mt-1 text-slate-800 break-words font-medium">
+                {formatVal(val)}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <details className="text-xs text-slate-500 group">
+        <summary className="cursor-pointer font-semibold text-slate-500 hover:text-slate-800 transition flex items-center gap-1.5 py-1 select-none w-fit">
+          <span>View raw payload</span>
+          <svg className="w-3.5 h-3.5 text-slate-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div className="mt-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+          <pre className="font-mono text-[11px] text-slate-600 overflow-x-auto whitespace-pre-wrap">
+            {JSON.stringify(sub.payload, null, 2)}
+          </pre>
+        </div>
+      </details>
+    </div>
+  );
+}
+
 export default async function AdminPage(props: {
   searchParams: Promise<{
     tab?: string;
@@ -809,13 +1138,8 @@ export default async function AdminPage(props: {
                         </span>
                       </div>
 
-                      {/* Payload Preview */}
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
-                        <span className="font-bold text-slate-700 block mb-1">Proposed Update Payload:</span>
-                        <pre className="font-mono text-[11px] text-slate-600 overflow-x-auto whitespace-pre-wrap">
-                          {JSON.stringify(sub.payload, null, 2)}
-                        </pre>
-                      </div>
+                      {/* Human-Readable Submission Details */}
+                      <SubmissionPayloadCard sub={sub} />
 
                       {sub.admin_notes && (
                         <div className="text-xs text-slate-600 p-2.5 bg-slate-50 rounded-lg border border-slate-100">
