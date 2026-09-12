@@ -330,7 +330,7 @@ export default async function DiscoverPage(props: {
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8">
           <div className="max-w-2xl">
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-              Search Connected Research &amp; Digital Hub
+              Search Islington Research &amp; Digital Hub
             </h2>
             <p className="mt-1.5 text-xs sm:text-sm text-slate-600">
               Search across faculty researchers, active projects, indexed publications, symposia, grants, ethics SOPs, and IJMR journal articles.
