@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import LayoutShell from "@/components/layout-shell";
 
 type ResearchArea = {
   id: string;
@@ -110,30 +111,34 @@ export default async function ProjectDetailPage(props: {
     .filter((p): p is LinkedPublication => Boolean(p)) ?? [];
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-12 text-slate-900 sm:px-10">
-      <div className="mx-auto max-w-5xl">
+    <LayoutShell activeNav="projects">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-8">
         {/* Navigation & Breadcrumbs */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-6">
-          <nav className="flex items-center gap-2 text-sm text-slate-600">
-            <Link href="/discover" className="font-medium text-indigo-700 hover:underline">
-              Discovery
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
+          <nav className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+            <Link href="/" className="hover:text-cyan-700">
+              Home
             </Link>
             <span>/</span>
-            <span className="font-semibold text-slate-900">Project: {project.title}</span>
+            <Link href="/discover" className="hover:text-cyan-700">
+              Projects
+            </Link>
+            <span>/</span>
+            <span className="font-bold text-slate-900 truncate max-w-xs">{project.title}</span>
           </nav>
 
           <div className="flex items-center gap-2">
             <Link
               href="/discover"
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100"
+              className="rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
             >
               &larr; Back to Discovery
             </Link>
             <Link
               href="/researchers"
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100"
+              className="rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
             >
-              All Researchers
+              Researchers
             </Link>
           </div>
         </div>
@@ -289,7 +294,7 @@ export default async function ProjectDetailPage(props: {
           )}
         </section>
       </div>
-    </main>
+    </LayoutShell>
   );
 }
 
