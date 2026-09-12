@@ -6,24 +6,25 @@ import { usePathname, useRouter } from "next/navigation";
 
 interface LayoutShellProps {
   children: React.ReactNode;
-  activeNav?:
-    | "home"
-    | "discover"
-    | "researchers"
-    | "projects"
-    | "publications"
-    | "events"
-    | "opportunities"
-    | "resources"
-    | "partners"
-    | "announcements"
-    | "ijmr"
-    | "admin"
-    | "areas";
+  activeNav?: string;
+}
+
+interface NavSubItem {
+  label: string;
+  href: string;
+  badge?: string;
+}
+
+interface NavSection {
+  id: string;
+  label: string;
+  href: string;
+  subItems?: NavSubItem[];
 }
 
 export default function LayoutShell({ children, activeNav }: LayoutShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [expandedMobileSection, setExpandedMobileSection] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
   const pathname = usePathname();
@@ -40,51 +41,195 @@ export default function LayoutShell({ children, activeNav }: LayoutShellProps) {
     activeNav ||
     (pathname === "/"
       ? "home"
-      : pathname.startsWith("/discover")
-      ? "discover"
-      : pathname.startsWith("/researchers")
-      ? "researchers"
+      : pathname.startsWith("/about")
+      ? "about"
+      : pathname.startsWith("/research-support")
+      ? "support"
+      : pathname.startsWith("/research") && !pathname.startsWith("/researchers")
+      ? "research"
+      : pathname.startsWith("/people") || pathname.startsWith("/researchers")
+      ? "people"
+      : pathname.startsWith("/projects")
+      ? "projects"
+      : pathname.startsWith("/publications") || pathname.startsWith("/ijmr")
+      ? "publications"
       : pathname.startsWith("/events")
       ? "events"
+      : pathname.startsWith("/funding")
+      ? "funding"
+      : pathname.startsWith("/resources")
+      ? "support"
+      : pathname.startsWith("/ethics")
+      ? "ethics"
       : pathname.startsWith("/opportunities")
       ? "opportunities"
-      : pathname.startsWith("/resources")
-      ? "resources"
-      : pathname.startsWith("/partners")
-      ? "partners"
-      : pathname.startsWith("/announcements")
-      ? "announcements"
-      : pathname.startsWith("/ijmr")
-      ? "ijmr"
+      : pathname.startsWith("/discover")
+      ? "search"
       : pathname.startsWith("/admin")
       ? "admin"
       : "home");
 
-  const navLinks = [
-    { id: "home", label: "Home", href: "/" },
-    { id: "discover", label: "Discover", href: "/discover" },
-    { id: "researchers", label: "Researchers", href: "/researchers" },
-    { id: "projects", label: "Projects", href: "/discover?q=project" },
-    { id: "publications", label: "Publications", href: "/discover?q=publication" },
-    { id: "areas", label: "Research Areas", href: "/discover" },
-    { id: "events", label: "Events", href: "/events" },
-    { id: "opportunities", label: "Opportunities", href: "/opportunities" },
-    { id: "resources", label: "Resources", href: "/resources" },
-    { id: "partners", label: "Partners", href: "/partners" },
-    { id: "announcements", label: "Announcements", href: "/announcements" },
-    { id: "ijmr", label: "IJMR", href: "/ijmr" },
+  const handbookNav: NavSection[] = [
+    {
+      id: "home",
+      label: "HOME",
+      href: "/",
+      subItems: [
+        { label: "Overview", href: "/" },
+        { label: "Highlights", href: "/#highlights" },
+        { label: "Discovery Entry Point", href: "/discover" },
+      ],
+    },
+    {
+      id: "about",
+      label: "ABOUT R&D",
+      href: "/about",
+      subItems: [
+        { label: "About R&D", href: "/about#about" },
+        { label: "Vision & Mission", href: "/about#vision" },
+        { label: "Structure", href: "/about#structure" },
+        { label: "Leadership", href: "/about#leadership" },
+        { label: "Advisory Structure", href: "/about#advisory" },
+        { label: "Research Teams", href: "/about#teams" },
+        { label: "Partners", href: "/partners" },
+      ],
+    },
+    {
+      id: "research",
+      label: "RESEARCH",
+      href: "/research",
+      subItems: [
+        { label: "Research Areas", href: "/research#areas" },
+        { label: "Interest Groups", href: "/research#groups" },
+        { label: "Active Projects", href: "/projects?status=ongoing" },
+        { label: "Completed Projects", href: "/projects?status=completed" },
+        { label: "Facilities", href: "/research#facilities" },
+        { label: "Research Impact", href: "/research#impact" },
+      ],
+    },
+    {
+      id: "people",
+      label: "PEOPLE",
+      href: "/people",
+      subItems: [
+        { label: "Researcher Directory", href: "/people" },
+        { label: "Profiles", href: "/people" },
+        { label: "Department Views", href: "/people?dept=computing" },
+        { label: "Research Area Views", href: "/people?area=ai" },
+      ],
+    },
+    {
+      id: "projects",
+      label: "PROJECTS",
+      href: "/projects",
+      subItems: [
+        { label: "All Projects", href: "/projects" },
+        { label: "Active Projects", href: "/projects?status=ongoing" },
+        { label: "Completed Projects", href: "/projects?status=completed" },
+        { label: "Project Archive", href: "/projects?status=archive" },
+      ],
+    },
+    {
+      id: "publications",
+      label: "PUBLICATIONS",
+      href: "/publications",
+      subItems: [
+        { label: "All Publications", href: "/publications" },
+        { label: "Journal Articles", href: "/publications?type=journal" },
+        { label: "Conference Papers", href: "/publications?type=conference" },
+        { label: "Reports", href: "/publications?type=report" },
+        { label: "Other Outputs", href: "/publications?type=other" },
+        { label: "IJMR Gateway", href: "/ijmr", badge: "Peer-Reviewed" },
+      ],
+    },
+    {
+      id: "events",
+      label: "CONFERENCES & EVENTS",
+      href: "/events",
+      subItems: [
+        { label: "Upcoming Events", href: "/events?type=upcoming" },
+        { label: "Conferences", href: "/events?type=conference" },
+        { label: "Seminars", href: "/events?type=seminar" },
+        { label: "Workshops", href: "/events?type=workshop" },
+        { label: "Calls for Papers", href: "/events?type=call_for_papers" },
+        { label: "Proceedings", href: "/events?type=proceedings" },
+        { label: "Past Events", href: "/events?type=past" },
+      ],
+    },
+    {
+      id: "funding",
+      label: "GRANTS & FUNDING",
+      href: "/funding",
+      subItems: [
+        { label: "Current Opportunities", href: "/funding" },
+        { label: "Internal Funding", href: "/funding?tab=internal" },
+        { label: "External Funding", href: "/funding?tab=external" },
+        { label: "Funding Guidelines", href: "/funding#funding-guidelines" },
+        { label: "Previous Funded Projects", href: "/funding#previous-funded-projects" },
+      ],
+    },
+    {
+      id: "support",
+      label: "RESEARCH SUPPORT",
+      href: "/research-support",
+      subItems: [
+        { label: "Methodology", href: "/research-support?category=methodology" },
+        { label: "Resources Directory", href: "/resources" },
+        { label: "Templates", href: "/research-support?category=templates" },
+        { label: "Publication Support", href: "/research-support" },
+        { label: "Academic Writing", href: "/research-support" },
+        { label: "Research Tools", href: "/research-support?category=tools" },
+      ],
+    },
+    {
+      id: "ethics",
+      label: "ETHICS & INTEGRITY",
+      href: "/ethics",
+      subItems: [
+        { label: "Research Ethics", href: "/ethics" },
+        { label: "Ethics Committee", href: "/ethics" },
+        { label: "Ethics Application", href: "/ethics" },
+        { label: "Research Integrity", href: "/ethics" },
+        { label: "Data Protection", href: "/ethics" },
+        { label: "AI Ethics", href: "/ethics" },
+        { label: "Policies & SOPs", href: "/ethics" },
+      ],
+    },
+    {
+      id: "opportunities",
+      label: "OPPORTUNITIES",
+      href: "/opportunities",
+      subItems: [
+        { label: "Student", href: "/opportunities?type=student" },
+        { label: "Faculty", href: "/opportunities?type=faculty" },
+        { label: "Research Assistantships", href: "/opportunities?type=assistantship" },
+        { label: "Grants", href: "/opportunities?type=grant" },
+        { label: "Conferences", href: "/opportunities?type=conference" },
+        { label: "Calls for Papers", href: "/opportunities?type=call_for_papers" },
+      ],
+    },
+    {
+      id: "search",
+      label: "SEARCH",
+      href: "/discover",
+      subItems: [
+        { label: "Search Islington Research", href: "/discover" },
+        { label: "Advanced Field Query", href: "/discover?q=Artificial+Intelligence" },
+      ],
+    },
   ];
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col antialiased text-slate-900">
       {/* ========================================================================= */}
-      {/* TOP NAVIGATION BAR (Clean, Minimal, Responsive)                          */}
+      {/* TOP NAVIGATION BAR (Clean, Minimal, Institutional)                       */}
       {/* ========================================================================= */}
       <header className="sticky top-0 z-40 border-b border-slate-200/90 bg-white/95 backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+        {/* Row 1: Brand, Global Search, Portals */}
         <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 gap-3">
             {/* Left: Brand Identity */}
-            <div className="flex items-center gap-4 lg:gap-6">
+            <div className="flex items-center gap-3">
               <Link href="/" className="flex items-center gap-2.5 group shrink-0">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-600 via-indigo-700 to-slate-900 p-0.5 flex items-center justify-center shadow-md shadow-cyan-500/15 group-hover:scale-105 transition">
                   <div className="w-full h-full bg-[#0b0f19] rounded-[10px] flex items-center justify-center">
@@ -103,32 +248,12 @@ export default function LayoutShell({ children, activeNav }: LayoutShellProps) {
                   </h1>
                 </div>
               </Link>
-
-              {/* Desktop Primary Nav Links */}
-              <nav className="hidden xl:flex items-center gap-0.5">
-                {navLinks.map((item) => {
-                  const isActive = currentNav === item.id;
-                  return (
-                    <Link
-                      key={item.id}
-                      href={item.href}
-                      className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
-                        isActive
-                          ? "bg-slate-900 text-white shadow-xs"
-                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </nav>
             </div>
 
-            {/* Right: Quick Search & Portal Links */}
-            <div className="flex items-center gap-3">
+            {/* Right: Quick Search & Portal Access */}
+            <div className="flex items-center gap-2.5">
               {/* Quick Search */}
-              <form onSubmit={handleSearch} className="hidden sm:block relative w-36 xl:w-44">
+              <form onSubmit={handleSearch} className="hidden md:block relative w-48 lg:w-64">
                 <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -136,14 +261,14 @@ export default function LayoutShell({ children, activeNav }: LayoutShellProps) {
                 </div>
                 <input
                   type="text"
-                  placeholder="Search hub..."
+                  placeholder="Search Islington Research..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-cyan-600 focus:outline-none focus:ring-1 focus:ring-cyan-500/20 transition"
                 />
               </form>
 
-              {/* Portal CTA */}
+              {/* Researcher Portal Button */}
               <Link
                 href="/login"
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-cyan-800 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200/90 transition shadow-2xs"
@@ -151,14 +276,22 @@ export default function LayoutShell({ children, activeNav }: LayoutShellProps) {
                 <svg className="w-3.5 h-3.5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                <span className="hidden xs:inline">Researcher Portal</span>
+                <span className="hidden sm:inline">Researcher Portal</span>
               </Link>
 
-              {/* Mobile Menu Hamburger Button */}
+              {/* Admin Button */}
+              <Link
+                href="/admin"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/80 transition"
+              >
+                <span>Admin</span>
+              </Link>
+
+              {/* Mobile Menu Toggle Button */}
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="xl:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                className="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 aria-label="Toggle Navigation Menu"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,31 +304,76 @@ export default function LayoutShell({ children, activeNav }: LayoutShellProps) {
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Medium Screen Secondary Nav Bar (for tablets between lg and xl) */}
-          <div className="hidden lg:flex xl:hidden items-center gap-1 py-2 border-t border-slate-100 overflow-x-auto text-xs">
-            {navLinks.map((item) => (
-              <Link
-                key={item.id}
-                href={item.href}
-                className={`px-2.5 py-1 rounded-md whitespace-nowrap font-medium transition ${
-                  currentNav === item.id ? "bg-slate-900 text-white" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+        {/* Row 2: Desktop 12-Item Mega-Menu Dropdown Navigation Bar */}
+        <div className="hidden lg:block border-t border-slate-100 bg-white/95">
+          <div className="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
+            <nav className="flex items-center justify-between text-[11px] font-bold tracking-tight">
+              {handbookNav.map((item) => {
+                const isActive = currentNav === item.id;
+                return (
+                  <div key={item.id} className="relative group py-2">
+                    <Link
+                      href={item.href}
+                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-md transition ${
+                        isActive
+                          ? "bg-slate-900 text-white"
+                          : "text-slate-700 hover:text-cyan-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                      {item.subItems && item.subItems.length > 0 && (
+                        <svg
+                          className="w-2.5 h-2.5 text-slate-400 group-hover:text-cyan-600 transition group-hover:rotate-180"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      )}
+                    </Link>
+
+                    {/* Dropdown Menu on Hover */}
+                    {item.subItems && item.subItems.length > 0 && (
+                      <div className="absolute left-0 top-full hidden group-hover:block pt-1 z-50 min-w-[210px]">
+                        <div className="rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in-50 duration-100">
+                          <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600 border-b border-slate-100 mb-1">
+                            {item.label}
+                          </div>
+                          {item.subItems.map((sub) => (
+                            <Link
+                              key={sub.href + sub.label}
+                              href={sub.href}
+                              className="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 hover:text-cyan-800 hover:bg-cyan-50/70 transition"
+                            >
+                              <span>{sub.label}</span>
+                              {sub.badge && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-cyan-100 text-cyan-800 font-bold uppercase">
+                                  {sub.badge}
+                                </span>
+                              )}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </nav>
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu Drawer */}
+        {/* Mobile Accordion Drawer */}
         {mobileMenuOpen && (
-          <div className="xl:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-5 space-y-3 shadow-lg animate-in slide-in-from-top-2 duration-150">
+          <div className="lg:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-6 space-y-3 shadow-lg max-h-[85vh] overflow-y-auto animate-in slide-in-from-top-2 duration-150">
             {/* Mobile Search */}
             <form onSubmit={handleSearch} className="relative">
               <input
                 type="text"
-                placeholder="Search researchers, events, opportunities..."
+                placeholder="Search Islington Research..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none"
@@ -207,31 +385,60 @@ export default function LayoutShell({ children, activeNav }: LayoutShellProps) {
               </div>
             </form>
 
-            <nav className="grid grid-cols-2 gap-1 pt-1">
-              {navLinks.map((item) => {
+            {/* Mobile Handbook Sections Accordion */}
+            <div className="space-y-1 divide-y divide-slate-100">
+              {handbookNav.map((item) => {
+                const isExpanded = expandedMobileSection === item.id;
                 const isActive = currentNav === item.id;
+
                 return (
-                  <Link
-                    key={item.id}
-                    href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`px-3 py-2 rounded-lg text-xs font-semibold transition ${
-                      isActive
-                        ? "bg-slate-900 text-white"
-                        : "text-slate-700 hover:bg-slate-100"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
+                  <div key={item.id} className="pt-1.5">
+                    <div className="flex items-center justify-between">
+                      <Link
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`text-xs font-bold px-2 py-1.5 rounded-lg flex-1 ${
+                          isActive ? "text-cyan-700 bg-cyan-50" : "text-slate-800"
+                        }`}
+                      >
+                        {item.label}
+                      </Link>
+                      {item.subItems && item.subItems.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setExpandedMobileSection(isExpanded ? null : item.id)}
+                          className="p-1.5 text-slate-400 hover:text-slate-700"
+                          aria-label={`Toggle ${item.label}`}
+                        >
+                          <svg
+                            className={`w-4 h-4 transition ${isExpanded ? "rotate-180" : ""}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+
+                    {isExpanded && item.subItems && (
+                      <div className="pl-4 pr-2 py-1.5 space-y-1 bg-slate-50/70 rounded-lg mt-1">
+                        {item.subItems.map((sub) => (
+                          <Link
+                            key={sub.href + sub.label}
+                            href={sub.href}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="block px-2 py-1 text-xs text-slate-600 hover:text-cyan-700 font-medium"
+                          >
+                            &bull; {sub.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
-            </nav>
-
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-              <span className="text-slate-500">Live Graph DB</span>
-              <span className="px-2 py-0.5 rounded bg-cyan-50 text-cyan-700 font-mono text-[11px] font-bold border border-cyan-200">
-                Supabase Connected
-              </span>
             </div>
           </div>
         )}

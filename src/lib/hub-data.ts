@@ -376,6 +376,28 @@ export const DEMO_RESOURCES: HubResource[] = [
     status: "published",
     is_demo: true,
   },
+  {
+    id: "res9-research-tools",
+    slug: "research-tools-frameworks-directory",
+    title: "Computational Research Tools & Frameworks Directory",
+    category: "tools",
+    description: "Curated catalog of licensed academic software, open-source benchmarking suites, simulation engines, and static code analyzers.",
+    content: "Islington researchers have access to specialized simulation environments including MATLAB/Simulink, NS-3 for network modeling, PyTorch/TensorFlow GPU clusters, and Wireshark enterprise analyzers. This directory outlines software provisioning and license keys.",
+    external_url: "#demo-tools-directory",
+    status: "published",
+    is_demo: true,
+  },
+  {
+    id: "res10-ethics-committee",
+    slug: "ethics-committee-review-charter",
+    title: "Institutional Research Ethics Committee (REC) Charter & Application Process",
+    category: "ethics_committee",
+    description: "Composition of the ethics committee, review schedules, expedited review criteria, and formal ethical clearance application pack.",
+    content: "The Research Ethics Committee oversees research integrity, human subject protections, and algorithmic fairness. Regular review cycles convene monthly. Submissions requiring expedited or full committee review must submit the standard Ethical Clearance Application Form alongside consent instruments.",
+    external_url: "#demo-rec-charter",
+    status: "published",
+    is_demo: true,
+  },
 ];
 
 export const DEMO_PARTNERS: HubPartner[] = [

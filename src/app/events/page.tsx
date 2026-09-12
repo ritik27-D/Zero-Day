@@ -13,20 +13,43 @@ export default async function EventsPage(props: {
 
   const eventTypes = [
     { id: "all", label: "All Events" },
+    { id: "upcoming", label: "Upcoming Events" },
     { id: "conference", label: "Conferences" },
-    { id: "workshop", label: "Workshops" },
-    { id: "masterclass", label: "Masterclasses" },
     { id: "seminar", label: "Seminars" },
+    { id: "workshop", label: "Workshops" },
     { id: "call_for_papers", label: "Calls for Papers" },
+    { id: "proceedings", label: "Proceedings" },
+    { id: "past", label: "Past Events" },
   ];
 
+  const now = new Date();
+
   const filteredEvents = allEvents.filter((e) => {
-    const matchesType = filterType === "all" || e.type === filterType;
+    let matchesType = true;
+    if (filterType === "all") {
+      matchesType = true;
+    } else if (filterType === "upcoming") {
+      matchesType = !e.start_date || new Date(e.start_date) >= now;
+    } else if (filterType === "past") {
+      matchesType = Boolean(e.start_date && new Date(e.start_date) < now);
+    } else if (filterType === "proceedings") {
+      matchesType =
+        e.type === "conference" ||
+        e.title.toLowerCase().includes("proceeding") ||
+        e.description.toLowerCase().includes("proceeding") ||
+        e.type === "call_for_papers";
+    } else if (filterType === "workshop") {
+      matchesType = e.type === "workshop" || e.type === "masterclass";
+    } else {
+      matchesType = e.type === filterType;
+    }
+
     const matchesQuery =
       !searchQuery ||
       e.title.toLowerCase().includes(searchQuery) ||
       e.description.toLowerCase().includes(searchQuery) ||
       (e.location && e.location.toLowerCase().includes(searchQuery));
+
     return matchesType && matchesQuery;
   });
 
@@ -38,13 +61,13 @@ export default async function EventsPage(props: {
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
               <span className="w-2 h-2 rounded-full bg-cyan-500" />
-              <span>Academic Dissemination &bull; Symposia</span>
+              <span>R&amp;D Events &amp; Conferences &bull; Academic Symposia</span>
             </div>
             <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900">
-              R&amp;D Events &amp; Conferences
+              Conferences, Seminars, Workshops &amp; Symposia
             </h1>
             <p className="mt-2 text-sm text-slate-600 max-w-2xl">
-              Explore upcoming academic conferences, technical workshops, research seminars, and symposiums hosted by Islington College faculties and collaborative research groups.
+              Explore upcoming academic conferences, technical workshops, faculty seminars, calls for papers, and conference proceedings hosted across Islington College.
             </p>
           </div>
 
@@ -55,7 +78,7 @@ export default async function EventsPage(props: {
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Handbook Filter Tabs */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap gap-1.5">
             {eventTypes.map((t) => (
@@ -85,6 +108,29 @@ export default async function EventsPage(props: {
             {filterType !== "all" && <input type="hidden" name="type" value={filterType} />}
           </form>
         </div>
+
+        {/* Proceedings Highlight Banner if Proceedings Tab Selected */}
+        {filterType === "proceedings" && (
+          <div className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded">
+                Conference Proceedings Index
+              </span>
+              <h3 className="text-base font-bold text-slate-900">
+                Peer-Reviewed Conference Proceedings &amp; Symposium Archives
+              </h3>
+              <p className="text-xs text-slate-600">
+                Full-text proceedings from Islington-hosted conferences are archived with DOIs and indexed in the IJMR repository.
+              </p>
+            </div>
+            <Link
+              href="/ijmr"
+              className="px-3.5 py-1.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-bold shrink-0 transition"
+            >
+              Open Proceedings Gateway &rarr;
+            </Link>
+          </div>
+        )}
 
         {/* Event Cards Grid */}
         {filteredEvents.length === 0 ? (
@@ -138,16 +184,17 @@ export default async function EventsPage(props: {
 
                     <div className="pt-2 border-t border-slate-100 space-y-1.5 text-xs text-slate-500">
                       <div className="flex items-center gap-2">
-                        <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span className="font-medium text-slate-700">{startDateFormatted}</span>
+                        <span>{startDateFormatted}</span>
                       </div>
+
                       {evt.location && (
                         <div className="flex items-center gap-2">
-                          <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                           </svg>
                           <span className="truncate">{evt.location}</span>
                         </div>
@@ -158,15 +205,19 @@ export default async function EventsPage(props: {
                   <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
                     <Link
                       href={`/events/${evt.slug}`}
-                      className="text-xs font-bold text-cyan-700 hover:text-cyan-800 transition flex items-center gap-1"
+                      className="text-xs font-bold text-cyan-700 hover:text-cyan-900 flex items-center gap-1 hover:underline"
                     >
                       <span>Event Details</span>
                       <span>&rarr;</span>
                     </Link>
+
                     {evt.registration_url && (
-                      <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
-                        Registration Open
-                      </span>
+                      <a
+                        href={evt.registration_url}
+                        className="text-xs font-semibold px-3 py-1 rounded-lg bg-cyan-50 text-cyan-800 hover:bg-cyan-100 transition"
+                      >
+                        Register
+                      </a>
                     )}
                   </div>
                 </div>

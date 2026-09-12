@@ -13,21 +13,54 @@ export default async function OpportunitiesPage(props: {
 
   const categories = [
     { id: "all", label: "All Opportunities" },
-    { id: "grant", label: "Research Grants" },
-    { id: "student_opportunity", label: "Student Fellowships" },
-    { id: "research_assistantship", label: "Assistantships" },
+    { id: "student", label: "Student Opportunities" },
+    { id: "faculty", label: "Faculty Opportunities" },
+    { id: "assistantship", label: "Research Assistantships" },
+    { id: "grant", label: "Grants" },
+    { id: "conference", label: "Conferences" },
     { id: "call_for_papers", label: "Calls for Papers" },
-    { id: "competition", label: "Competitions" },
-    { id: "funding", label: "Travel & Funding" },
   ];
 
   const filteredOpps = allOpps.filter((o) => {
-    const matchesType = filterType === "all" || o.type === filterType;
+    let matchesType = true;
+    if (filterType === "all") {
+      matchesType = true;
+    } else if (filterType === "student") {
+      matchesType =
+        o.type === "student_opportunity" ||
+        (o.eligibility || "").toLowerCase().includes("student") ||
+        (o.eligibility || "").toLowerCase().includes("undergraduate");
+    } else if (filterType === "faculty") {
+      matchesType =
+        o.type === "grant" ||
+        (o.eligibility || "").toLowerCase().includes("faculty") ||
+        (o.eligibility || "").toLowerCase().includes("researcher");
+    } else if (filterType === "assistantship") {
+      matchesType =
+        o.type === "research_assistantship" ||
+        o.title.toLowerCase().includes("assistant");
+    } else if (filterType === "grant") {
+      matchesType = o.type === "grant" || o.type === "funding";
+    } else if (filterType === "conference") {
+      matchesType =
+        o.type === "conference" ||
+        o.title.toLowerCase().includes("conference") ||
+        o.description.toLowerCase().includes("conference");
+    } else if (filterType === "call_for_papers") {
+      matchesType =
+        o.type === "call_for_papers" ||
+        o.title.toLowerCase().includes("call for papers") ||
+        o.title.toLowerCase().includes("special issue");
+    } else {
+      matchesType = o.type === filterType;
+    }
+
     const matchesQuery =
       !searchQuery ||
       o.title.toLowerCase().includes(searchQuery) ||
       o.description.toLowerCase().includes(searchQuery) ||
       (o.provider && o.provider.toLowerCase().includes(searchQuery));
+
     return matchesType && matchesQuery;
   });
 
@@ -39,13 +72,13 @@ export default async function OpportunitiesPage(props: {
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-700">
               <span className="w-2 h-2 rounded-full bg-cyan-500" />
-              <span>Institutional Capital &bull; Fellowships</span>
+              <span>Grants &amp; Research Opportunities &bull; Fellowships</span>
             </div>
             <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900">
-              Grants &amp; Research Opportunities
+              Grants, Fellowships &amp; Research Opportunities
             </h1>
             <p className="mt-2 text-sm text-slate-600 max-w-2xl">
-              Discover institutional seed funding, graduate research assistantships, student fellowships, and competitive calls for papers supported by Islington College.
+              Discover student research fellowships, faculty seed grants, graduate assistantships, conference opportunities, and peer-reviewed calls for papers.
             </p>
           </div>
 
@@ -79,7 +112,7 @@ export default async function OpportunitiesPage(props: {
               type="text"
               name="q"
               defaultValue={searchQuery}
-              placeholder="Search grants & funding..."
+              placeholder="Search opportunities..."
               className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-cyan-600"
             />
             {filterType !== "all" && <input type="hidden" name="type" value={filterType} />}
@@ -136,40 +169,41 @@ export default async function OpportunitiesPage(props: {
                       {op.description}
                     </p>
 
-                    {op.amount && (
-                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Award:</span>
-                        <span className="font-bold text-slate-800">{op.amount}</span>
-                      </div>
-                    )}
-
                     <div className="pt-2 border-t border-slate-100 space-y-1 text-xs text-slate-500">
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-400">Deadline:</span>
-                        <span className="font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-100">
-                          {deadlineFormatted}
-                        </span>
-                      </div>
                       {op.provider && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-slate-400">Provider:</span>
-                          <span className="font-medium text-slate-700 truncate max-w-[160px]">{op.provider}</span>
+                        <div>
+                          <span className="font-semibold text-slate-400">Host:</span> {op.provider}
                         </div>
                       )}
+                      {op.amount && (
+                        <div className="text-emerald-700 font-semibold">
+                          <span>Award:</span> {op.amount}
+                        </div>
+                      )}
+                      <div>
+                        <span className="font-semibold text-slate-400">Deadline:</span>{" "}
+                        <span className="font-mono text-slate-700">{deadlineFormatted}</span>
+                      </div>
                     </div>
                   </div>
 
                   <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
                     <Link
                       href={`/opportunities/${op.slug}`}
-                      className="text-xs font-bold text-cyan-700 hover:text-cyan-800 transition flex items-center gap-1"
+                      className="text-xs font-bold text-cyan-700 hover:text-cyan-900 flex items-center gap-1 hover:underline"
                     >
-                      <span>View Guidelines</span>
+                      <span>Opportunity Details</span>
                       <span>&rarr;</span>
                     </Link>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
-                      Open Call
-                    </span>
+
+                    {op.application_url && (
+                      <a
+                        href={op.application_url}
+                        className="text-xs font-semibold px-3 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition"
+                      >
+                        Apply
+                      </a>
+                    )}
                   </div>
                 </div>
               );
