@@ -64,7 +64,7 @@ export async function signInAction(formData: FormData): Promise<{ error?: string
   });
 
   if (authError || !authData?.session) {
-    return { error: "Invalid username or password. Please try again." };
+    return { error: "Invalid username or password." };
   }
 
   const { access_token, refresh_token } = authData.session;

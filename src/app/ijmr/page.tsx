@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import LayoutShell from "@/components/layout-shell";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -25,55 +24,55 @@ export default async function IJMRGatewayPage() {
   return (
     <LayoutShell activeNav="ijmr">
       <div className="space-y-10 max-w-5xl mx-auto">
-        {/* Gateway Banner */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-10 shadow-xs relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-800">
-              <span className="w-2 h-2 rounded-full bg-teal-600" />
-              <span>Institutional Scholarly Dissemination Gateway</span>
-            </div>
-            <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 leading-tight">
-              Islington Journal of Multidisciplinary Research (IJMR)
-            </h1>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-              A peer-reviewed, open-access academic journal dedicated to publishing cutting-edge research across Computing, Information Systems, Applied AI, and Technology Governance.
-            </p>
-            <div className="pt-3 flex flex-wrap gap-3">
-              <a
-                href="https://ijmr.islingtoncollege.edu.np/index.php/IJMR"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold uppercase tracking-wider transition shadow-xs flex items-center gap-1.5"
-              >
-                <span>Visit IJMR Portal</span>
-                <span>&nearr;</span>
-              </a>
-              <a
-                href="https://ijmr.islingtoncollege.edu.np/index.php/IJMR/about/submissions"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider transition shadow-xs flex items-center gap-1.5"
-              >
-                <span>Submit a Manuscript</span>
-                <span>&nearr;</span>
-              </a>
-              <Link
-                href="/publications"
-                className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold uppercase tracking-wider transition flex items-center gap-1.5"
-              >
-                <span>Browse Publications</span>
-              </Link>
-            </div>
+        {/* Large Wide Hero Banner Visual */}
+        <div className="w-full rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50 to-white shadow-xs overflow-hidden flex items-center justify-center p-6 sm:p-10">
+          <div
+            className="w-full max-w-2xl h-36 sm:h-48 md:h-56 bg-contain bg-center bg-no-repeat"
+            style={{
+              backgroundImage: "url('/images/ijmr-logo.png')",
+              backgroundSize: "contain",
+              backgroundPosition: "center",
+            }}
+          />
+        </div>
+
+        {/* Journal Metadata & Gateway CTAs */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-10 shadow-xs space-y-4">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-800">
+            <span className="w-2 h-2 rounded-full bg-teal-600" />
+            <span>Institutional Scholarly Dissemination Gateway</span>
           </div>
-          <div className="shrink-0 bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-center justify-center">
-            <Image
-              src="/images/ijmr-logo.png"
-              alt="Islington Journal of Multidisciplinary Research (IJMR)"
-              width={200}
-              height={80}
-              className="h-16 sm:h-20 w-auto object-contain"
-              priority
-            />
+          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 leading-tight">
+            Islington Journal of Multidisciplinary Research (IJMR)
+          </h1>
+          <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-3xl">
+            A peer-reviewed, open-access academic journal dedicated to publishing cutting-edge research across Computing, Information Systems, Applied AI, and Technology Governance.
+          </p>
+          <div className="pt-3 flex flex-wrap gap-3">
+            <a
+              href="https://ijmr.islingtoncollege.edu.np/index.php/IJMR"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold uppercase tracking-wider transition shadow-xs flex items-center gap-1.5"
+            >
+              <span>Visit IJMR Portal</span>
+              <span>↗</span>
+            </a>
+            <a
+              href="https://ijmr.islingtoncollege.edu.np/index.php/IJMR/about/submissions"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider transition shadow-xs flex items-center gap-1.5"
+            >
+              <span>Submit a Manuscript</span>
+              <span>↗</span>
+            </a>
+            <Link
+              href="/publications"
+              className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold uppercase tracking-wider transition flex items-center gap-1.5"
+            >
+              <span>Browse Publications</span>
+            </Link>
           </div>
         </div>
 

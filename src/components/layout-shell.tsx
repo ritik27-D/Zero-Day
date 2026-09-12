@@ -24,6 +24,8 @@ export default function LayoutShell({ children, activeNav }: LayoutShellProps) {
     }
   };
 
+  const isHomePage = activeNav === "home" || pathname === "/";
+
   const currentNav =
     activeNav ||
     (pathname === "/"
@@ -71,16 +73,16 @@ export default function LayoutShell({ children, activeNav }: LayoutShellProps) {
       {/* ========================================================================= */}
       <header className="sticky top-0 z-40 border-b border-slate-200/90 bg-white/95 backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-3 lg:gap-4">
+          <div className="flex items-center justify-between min-h-[66px] sm:min-h-[70px] py-1.5 gap-2 lg:gap-3 xl:gap-4">
             {/* Left: Authentic Brand Logo */}
             <div className="flex items-center shrink-0">
               <Link href="/" className="flex items-center gap-2.5 group">
                 <Image
                   src="/images/islington-rd-connect-logo.png"
                   alt="Islington R&D Connect"
-                  width={175}
-                  height={42}
-                  className="h-8 sm:h-9 w-auto object-contain"
+                  width={180}
+                  height={63}
+                  className="w-[145px] sm:w-[168px] h-auto object-contain"
                   priority
                 />
               </Link>
@@ -106,27 +108,29 @@ export default function LayoutShell({ children, activeNav }: LayoutShellProps) {
               })}
             </nav>
 
-            {/* Right: Search + Researcher Sign In / Admin Indicator */}
+            {/* Right: Search (Hidden on Homepage) + Researcher Sign In / Admin Indicator */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               {/* Compact Search Field */}
-              <form onSubmit={handleSearch} className="relative hidden md:block">
-                <input
-                  type="text"
-                  placeholder="Search Islington Research..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-48 lg:w-44 xl:w-56 rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-teal-600 transition"
-                />
-                <button
-                  type="submit"
-                  aria-label="Submit search"
-                  className="absolute inset-y-0 left-0 pl-2.5 flex items-center text-slate-400 hover:text-teal-600"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </button>
-              </form>
+              {!isHomePage && (
+                <form onSubmit={handleSearch} className="relative hidden md:block">
+                  <input
+                    type="text"
+                    placeholder="Search Islington Research..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-48 lg:w-44 xl:w-56 rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-teal-600 transition"
+                  />
+                  <button
+                    type="submit"
+                    aria-label="Submit search"
+                    className="absolute inset-y-0 left-0 pl-2.5 flex items-center text-slate-400 hover:text-teal-600"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </button>
+                </form>
+              )}
 
               {isAdminRoute ? (
                 <div className="flex items-center gap-1.5 sm:gap-2">
@@ -171,21 +175,23 @@ export default function LayoutShell({ children, activeNav }: LayoutShellProps) {
         {/* Mobile Slideout Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-6 space-y-4 shadow-lg max-h-[85vh] overflow-y-auto animate-in slide-in-from-top-2 duration-150">
-            {/* Mobile Search Input */}
-            <form onSubmit={handleSearch} className="relative">
-              <input
-                type="text"
-                placeholder="Search Islington Research..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none"
-              />
-              <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-            </form>
+            {/* Mobile Search Input (Hidden on Homepage) */}
+            {!isHomePage && (
+              <form onSubmit={handleSearch} className="relative">
+                <input
+                  type="text"
+                  placeholder="Search Islington Research..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none"
+                />
+                <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+              </form>
+            )}
 
             {/* Flat Navigation Links */}
             <div className="space-y-1 divide-y divide-slate-100">

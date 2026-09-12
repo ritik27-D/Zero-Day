@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { connection } from "next/server";
 import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import LayoutShell from "@/components/layout-shell";
@@ -172,51 +171,41 @@ export default async function HomePage() {
     <LayoutShell activeNav="home">
       <div className="space-y-12 sm:space-y-16 lg:space-y-20">
         {/* ========================================================================= */}
-        {/* HERO SECTION: Clean, Spacious, Islington College Inspired                 */}
+        {/* HERO SECTION: Wide Institutional Hero Banner                             */}
         {/* ========================================================================= */}
-        <section className="text-center py-8 sm:py-14 lg:py-16 px-4 max-w-4xl mx-auto">
-          {/* Authentic Islington R&D Brand Logo */}
-          <div className="flex justify-center mb-6">
-            <Image
-              src="/images/islington-rd-logo.png"
-              alt="Islington College R&D"
-              width={100}
-              height={100}
-              className="w-20 sm:w-24 md:w-28 h-auto object-contain"
-              priority
-            />
-          </div>
+        <section className="relative rounded-2xl sm:rounded-3xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
+          <div
+            className="relative w-full py-12 sm:py-16 md:py-20 px-4 sm:px-8 text-center flex flex-col items-center justify-center bg-center bg-cover min-h-[380px] sm:min-h-[440px]"
+            style={{
+              backgroundImage: "url('/images/islington-rd-logo.png')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          >
+            {/* Subtle light overlay to guarantee pristine readability */}
+            <div className="absolute inset-0 bg-white/90 sm:bg-white/92 backdrop-blur-[1px]" />
 
-          {/* Eyebrow badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-teal-50 border border-teal-200/80 text-teal-800 text-xs font-bold tracking-widest uppercase mb-4 shadow-2xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-teal-600" />
-            <span>Research &amp; Development</span>
-          </div>
+            <div className="relative z-10 max-w-3xl mx-auto flex flex-col items-center">
+              {/* Exact Hero Title */}
+              <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.15] break-words">
+                Connecting Research, People &amp; Impact.
+              </h1>
 
-          {/* Exact Hero Title */}
-          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.15] break-words">
-            Connecting Research, People &amp; Impact.
-          </h1>
+              {/* Exact Hero Subtitle */}
+              <p className="mt-4 sm:mt-5 text-sm sm:text-base lg:text-lg text-slate-700 max-w-2xl mx-auto leading-relaxed font-medium">
+                Discover the people, projects, publications and opportunities shaping research at Islington.
+              </p>
 
-          {/* Exact Hero Subtitle */}
-          <p className="mt-4 sm:mt-5 text-sm sm:text-base lg:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Discover the people, projects, publications and opportunities shaping research at Islington.
-          </p>
-
-          {/* Primary Action Buttons */}
-          <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full max-w-xs sm:max-w-none mx-auto">
-            <Link
-              href="/research"
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm transition shadow-sm hover:shadow-md text-center cursor-pointer"
-            >
-              Explore Research
-            </Link>
-            <Link
-              href="/discover"
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-800 hover:text-slate-900 font-bold text-sm border border-slate-300 transition shadow-2xs text-center cursor-pointer"
-            >
-              Search Research
-            </Link>
+              {/* Primary Action Button */}
+              <div className="mt-6 sm:mt-8 flex items-center justify-center">
+                <Link
+                  href="/discover"
+                  className="px-7 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm transition shadow-sm hover:shadow-md text-center cursor-pointer"
+                >
+                  Search Research
+                </Link>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -224,19 +213,13 @@ export default async function HomePage() {
         {/* SECTION 1: RESEARCH AT A GLANCE (Modest Clean Statistics)                */}
         {/* ========================================================================= */}
         <section className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-8 shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-slate-100 pb-4">
-            <div>
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Institutional Overview
-              </h2>
-              <p className="text-lg font-bold text-slate-900 mt-0.5">
-                Research at a Glance
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-              <span>Live Academic Database &bull; Verified Research Records</span>
-            </div>
+          <div className="mb-6 border-b border-slate-100 pb-4">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              Institutional Overview
+            </h2>
+            <p className="text-lg font-bold text-slate-900 mt-0.5">
+              Research at a Glance
+            </p>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -306,24 +289,13 @@ export default async function HomePage() {
         {/* SECTION 2: EXPLORE RESEARCH (4 Clean Cards)                               */}
         {/* ========================================================================= */}
         <section className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-slate-200/80 pb-3">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-cyan-700">
-                R&amp;D Knowledge Hub
-              </span>
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900 mt-0.5">
-                Explore Research
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl">
-                Navigate the core pillars of academic inquiry and scholarly dissemination across Islington College.
-              </p>
-            </div>
-            <Link
-              href="/discover"
-              className="text-xs font-bold text-cyan-700 hover:text-cyan-900 hover:underline shrink-0"
-            >
-              Unified Search &rarr;
-            </Link>
+          <div className="border-b border-slate-200/80 pb-3">
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+              Explore Research
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl">
+              Navigate the core pillars of academic inquiry and scholarly dissemination across Islington College.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -439,10 +411,7 @@ export default async function HomePage() {
         <section className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-slate-200/80 pb-3">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Selected Initiatives
-              </span>
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900 mt-0.5">
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900">
                 Featured Research Projects
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl">
@@ -521,24 +490,13 @@ export default async function HomePage() {
         {/* SECTION 4: CONNECTED RESEARCH TRAIL (Light Institutional Styling)         */}
         {/* ========================================================================= */}
         <section className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200/90 shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-100 pb-5">
-            <div>
-              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-[11px] font-bold uppercase tracking-wider mb-2">
-                Relational Knowledge Graph
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-                Connected Research Trail
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-600 mt-1.5 max-w-2xl leading-relaxed">
-                Demonstrating Islington&apos;s relational architecture: how a field of inquiry connects directly to faculty investigators, collaborative projects, and peer-reviewed publications.
-              </p>
-            </div>
-            <Link
-              href="/discover?q=Artificial+Intelligence"
-              className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition shrink-0 self-start sm:self-auto cursor-pointer shadow-xs"
-            >
-              Explore Graph in Discover &rarr;
-            </Link>
+          <div className="border-b border-slate-100 pb-5">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+              Connected Research Trail
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 mt-1.5 max-w-2xl leading-relaxed">
+              Demonstrating Islington&apos;s relational architecture: how a field of inquiry connects directly to faculty investigators, collaborative projects, and peer-reviewed publications.
+            </p>
           </div>
 
           {/* 4 Connected Cards with Clean Step Progression */}

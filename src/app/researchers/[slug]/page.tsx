@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { getCurrentSession } from "@/lib/auth";
 import LayoutShell from "@/components/layout-shell";
 
 type ResearchArea = {
@@ -95,6 +96,8 @@ export default async function ResearcherDetailPage(props: {
   }
 
   const researcher = data as unknown as ResearcherDetail;
+  const session = await getCurrentSession();
+  const isOwnProfile = session?.profile.researcher?.slug === slug;
 
   const areas = researcher.researcher_research_areas
     ?.map((r) => toItem(r.research_areas))
@@ -153,11 +156,24 @@ export default async function ResearcherDetailPage(props: {
               </h1>
               <p className="mt-1.5 text-base font-medium text-indigo-700">{researcher.title}</p>
             </div>
-            {researcher.is_demo ? (
-              <span className="rounded bg-amber-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-800">
-                Demo Data
-              </span>
-            ) : null}
+            <div className="flex flex-wrap items-center gap-2">
+              {!isOwnProfile && (
+                <Link
+                  href={session ? `/researcher/messages?recipientId=${researcher.id}` : `/login?redirect=/researcher/messages?recipientId=${researcher.id}`}
+                  className="rounded-xl border border-cyan-300 bg-cyan-50 px-3.5 py-1.5 text-xs font-bold text-cyan-900 hover:bg-cyan-100 transition flex items-center gap-1.5 shadow-2xs"
+                >
+                  <svg className="w-3.5 h-3.5 text-cyan-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  <span>Message Researcher</span>
+                </Link>
+              )}
+              {researcher.is_demo ? (
+                <span className="rounded bg-amber-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-800">
+                  Demo Data
+                </span>
+              ) : null}
+            </div>
           </div>
 
           <div className="mt-6 border-t border-slate-100 pt-6">
@@ -174,10 +190,18 @@ export default async function ResearcherDetailPage(props: {
               </span>{" "}
               <a
                 href={`mailto:${researcher.email}`}
-                className="font-medium text-indigo-700 hover:underline"
+                className="font-medium text-indigo-700 hover:underline mr-3"
               >
                 {researcher.email}
               </a>
+              {!isOwnProfile && (
+                <Link
+                  href={session ? `/researcher/messages?recipientId=${researcher.id}` : `/login?redirect=/researcher/messages?recipientId=${researcher.id}`}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-700 hover:text-cyan-800 underline"
+                >
+                  Direct Message &rarr;
+                </Link>
+              )}
             </div>
 
             {/* Linked Research Areas */}

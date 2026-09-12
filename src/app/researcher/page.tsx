@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireResearcher } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { listSubmissionsForResearcher, SubmissionRecord } from "@/lib/submissions";
+import { getResearcherNotifications } from "@/lib/notifications";
 
 export default async function ResearcherDashboardPage() {
   const session = await requireResearcher();
@@ -12,6 +13,11 @@ export default async function ResearcherDashboardPage() {
   let projectCount = 0;
   let publicationCount = 0;
   let submissions: SubmissionRecord[] = [];
+
+  const { notifications } = await getResearcherNotifications(
+    session.user.id,
+    profile.researcherId
+  );
 
   if (profile.researcherId) {
     // 1. Fetch linked project count
@@ -71,6 +77,15 @@ export default async function ResearcherDashboardPage() {
               </Link>
             ) : null}
             <Link
+              href="/researcher/messages"
+              className="rounded-xl border border-cyan-300 bg-cyan-50 px-3.5 py-2 text-xs font-semibold text-cyan-800 hover:bg-cyan-100 transition flex items-center gap-1.5"
+            >
+              <svg className="w-3.5 h-3.5 text-cyan-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <span>Faculty Messages</span>
+            </Link>
+            <Link
               href="/researcher/profile"
               className="rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white hover:bg-slate-800 transition"
             >
@@ -91,7 +106,7 @@ export default async function ResearcherDashboardPage() {
       </section>
 
       {/* Overview Stat Cards */}
-      <section className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+      <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -151,6 +166,81 @@ export default async function ResearcherDashboardPage() {
             Track review status &rarr;
           </Link>
         </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Collaboration
+            </span>
+            <span className="p-2 rounded-xl bg-teal-50 text-teal-700">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </span>
+          </div>
+          <p className="mt-3 text-xl font-extrabold text-slate-900">Messaging</p>
+          <Link
+            href="/researcher/messages"
+            className="mt-2 inline-block text-xs font-semibold text-teal-700 hover:text-teal-800"
+          >
+            Open Faculty Chat &rarr;
+          </Link>
+        </div>
+      </section>
+
+      {/* Notifications & Recent Faculty Activity Feed */}
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-2.5">
+            <span className="p-2 rounded-xl bg-cyan-50 text-cyan-700">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+            </span>
+            <div>
+              <h2 className="text-base font-bold text-slate-900">Notifications &amp; Activity Feed</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Direct messages, review decisions, and institutional announcements.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/researcher/messages"
+            className="text-xs font-semibold text-cyan-700 hover:text-cyan-800"
+          >
+            Open Messenger &rarr;
+          </Link>
+        </div>
+
+        {notifications.length === 0 ? (
+          <div className="py-8 text-center text-xs text-slate-500">
+            No recent notifications. You are all caught up!
+          </div>
+        ) : (
+          <div className="mt-4 divide-y divide-slate-100">
+            {notifications.slice(0, 4).map((n) => (
+              <div key={n.id} className="py-3 flex items-start justify-between gap-3 text-xs">
+                <div className="flex items-start gap-3">
+                  <span
+                    className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
+                      n.unread ? "bg-cyan-600 animate-pulse" : "bg-slate-300"
+                    }`}
+                  />
+                  <div>
+                    <span className="font-bold text-slate-900">{n.title}</span>
+                    <p className="text-slate-600 mt-0.5">{n.message}</p>
+                  </div>
+                </div>
+                <Link
+                  href={n.link}
+                  className="shrink-0 text-xs font-semibold text-cyan-700 hover:text-cyan-800 transition"
+                >
+                  View &rarr;
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Recent Submissions Table */}

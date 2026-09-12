@@ -9,6 +9,7 @@ import { signInAction } from "@/lib/auth-actions";
 function ResearcherLoginForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -52,13 +53,16 @@ function ResearcherLoginForm() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+          <label htmlFor="username" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
             Username or Institutional Email
           </label>
           <div className="mt-1">
             <input
+              id="username"
+              name="username"
               type="text"
               required
+              autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="e.g. dr-aisha-rahman"
@@ -68,18 +72,43 @@ function ResearcherLoginForm() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+          <label htmlFor="password" className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
             Password
           </label>
-          <div className="mt-1">
+          <div className="mt-1 relative">
             <input
-              type="password"
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
               required
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="block w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition"
+              className="block w-full rounded-xl border border-slate-200 bg-slate-50/60 pl-3.5 pr-10 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition"
             />
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowPassword((prev) => !prev);
+              }}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute inset-y-0 right-0 pr-3 z-10 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none focus:text-teal-600 cursor-pointer"
+            >
+              {showPassword ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
 
@@ -111,24 +140,33 @@ export default function ResearcherLoginPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <Link href="/" className="inline-block group">
+          <Link
+            href="/"
+            className="inline-block bg-white px-5 py-2.5 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition group"
+          >
             <Image
               src="/images/islington-rd-connect-logo.png"
               alt="Islington R&D Connect"
               width={180}
-              height={45}
-              className="h-10 w-auto object-contain mx-auto group-hover:opacity-90 transition"
+              height={63}
+              className="w-[165px] h-auto object-contain mx-auto group-hover:opacity-90 transition"
               priority
             />
           </Link>
         </div>
 
-        <h2 className="mt-6 text-center text-2xl font-bold tracking-tight text-slate-900">
-          Researcher Portal
-        </h2>
-        <p className="mt-1.5 text-center text-xs text-slate-500">
-          Sign in to manage your profile, project contributions, and research submissions.
-        </p>
+        <div className="mt-5 text-center">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-teal-50 text-teal-800 border border-teal-200/80 shadow-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-teal-600" />
+            Faculty Workspace &bull; Researcher Portal
+          </span>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
+            Researcher Portal
+          </h2>
+          <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
+            Sign in to manage your profile, project contributions, and research submissions.
+          </p>
+        </div>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">

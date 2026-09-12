@@ -1,9 +1,12 @@
 import Link from "next/link";
+import Image from "next/image";
 import { connection } from "next/server";
 import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { signOutAction } from "@/lib/auth-actions";
 import { listAllSubmissions } from "@/lib/submissions";
+import { getAdminNotifications } from "@/lib/notifications";
+import NotificationsDropdown from "@/components/notifications-dropdown";
 import LayoutShell from "@/components/layout-shell";
 import {
   saveResearcherAction,
@@ -628,6 +631,7 @@ export default async function AdminPage(props: {
   const pendingSubmissionsCount = submissions.filter((s) => s.status === "pending").length;
   const needsAttention = await getNeedsAttentionItems(pendingSubmissionsCount);
   const recentActivity = await getRecentAdminActivity();
+  const { notifications: adminNotifications, unreadCount: adminUnreadCount } = await getAdminNotifications();
 
   const filterQ = (searchParams.q || "").toLowerCase().trim();
   const filterStatus = searchParams.filter_status || "";
@@ -705,44 +709,103 @@ export default async function AdminPage(props: {
   return (
     <LayoutShell activeNav="admin">
       <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-8">
-        {/* Admin Header */}
+        {/* Admin Header with Official Brand Logo & Notifications */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="rounded bg-indigo-100 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-indigo-800">
-                Admin Portal
-              </span>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                Islington College Governance
-              </p>
+          <div className="flex items-center gap-4">
+            <Link href="/admin" className="hidden sm:inline-block shrink-0 group">
+              <Image
+                src="/images/islington-rd-logo.png"
+                alt="Islington College Research & Development"
+                width={140}
+                height={55}
+                className="h-10 w-auto object-contain group-hover:opacity-90 transition"
+                priority
+              />
+            </Link>
+            <div className="hidden sm:block h-9 w-px bg-slate-200" />
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="rounded bg-indigo-100 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-indigo-800 border border-indigo-200">
+                  Admin Portal
+                </span>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Islington College Governance
+                </p>
+              </div>
+              <h1 className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+                Research Data &amp; Submissions Management
+              </h1>
             </div>
-            <h1 className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-              Research Data &amp; Submissions Management
-            </h1>
           </div>
+
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 border-r border-slate-200 pr-3">
+            {/* Admin Notifications Dropdown */}
+            <NotificationsDropdown
+              initialNotifications={adminNotifications}
+              initialUnreadCount={adminUnreadCount}
+              role="admin"
+              align="left"
+            />
+
+            <div className="hidden sm:flex items-center gap-2 border-l border-slate-200 pl-3">
               <span className="w-2 h-2 rounded-full bg-indigo-500" />
               <span className="text-xs font-bold text-slate-800">
                 Admin: {session.profile.username}
               </span>
             </div>
+
             <Link
               href="/"
-              className="rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+              className="text-xs font-semibold text-slate-700 hover:text-slate-900 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition"
             >
               &larr; Public Hub
             </Link>
             <form action={signOutAction}>
               <button
                 type="submit"
-                className="rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition"
+                className="rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition cursor-pointer"
               >
                 Sign Out
               </button>
             </form>
           </div>
         </div>
+
+        {/* Governance Notifications & Pending Actions Alert Banner */}
+        {adminUnreadCount > 0 && (
+          <div className="rounded-2xl border border-indigo-200 bg-gradient-to-r from-indigo-50/90 via-purple-50/40 to-white p-5 shadow-xs flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-bold text-slate-900">
+                    Administrator Governance Queue
+                  </h2>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-indigo-600 text-white">
+                    {adminUnreadCount} Pending Item{adminUnreadCount > 1 ? "s" : ""}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Pending change requests and system audit notifications awaiting governance review.
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href="/admin?tab=submissions"
+              className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-xs font-semibold shadow-xs transition flex items-center gap-1.5"
+            >
+              <span>Review Submissions Queue</span>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+        )}
 
         {/* Feedback Alerts */}
         {successMsg ? (

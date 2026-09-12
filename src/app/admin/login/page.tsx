@@ -2,6 +2,7 @@
 
 import { useState, useTransition, Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signInAction } from "@/lib/auth-actions";
 
@@ -51,13 +52,16 @@ function AdminLoginForm() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+          <label htmlFor="admin-username" className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
             Administrator Username
           </label>
           <div className="mt-1">
             <input
+              id="admin-username"
+              name="username"
               type="text"
               required
+              autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="e.g. admin"
@@ -67,13 +71,16 @@ function AdminLoginForm() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+          <label htmlFor="admin-password" className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
             Password
           </label>
           <div className="mt-1">
             <input
+              id="admin-password"
+              name="password"
               type="password"
               required
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
@@ -107,23 +114,30 @@ export default function AdminLoginPage() {
     <div className="min-h-screen bg-[#080c14] flex flex-col justify-center py-12 sm:px-6 lg:px-8 text-slate-100">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-600 to-indigo-900 p-0.5 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-            <div className="w-full h-full bg-[#0b0f19] rounded-[14px] flex items-center justify-center">
-              <svg className="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
-          </div>
+          <Link
+            href="/"
+            className="inline-block bg-white px-5 py-2.5 rounded-2xl shadow-xl border border-slate-700/60 hover:opacity-95 transition group"
+          >
+            <Image
+              src="/images/islington-rd-connect-logo.png"
+              alt="Islington R&D Connect"
+              width={180}
+              height={63}
+              className="w-[165px] h-auto object-contain"
+              priority
+            />
+          </Link>
         </div>
 
-        <div className="mt-4 text-center">
-          <span className="text-[10px] font-extrabold tracking-[0.25em] uppercase text-indigo-400">
-            ISLINGTON R&amp;D GOVERNANCE
+        <div className="mt-5 text-center">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-indigo-950/80 text-indigo-300 border border-indigo-700/60 shadow-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+            Institutional Governance &bull; Admin Portal
           </span>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-white">
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-white">
             Administrator Login
           </h2>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-slate-400 max-w-sm mx-auto">
             Sign in with authorized administrator credentials to manage research entities and review submissions.
           </p>
         </div>
