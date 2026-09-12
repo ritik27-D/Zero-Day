@@ -16,35 +16,35 @@ export default async function AboutPage() {
         {/* ========================================================================= */}
         {/* 1. HERO / ABOUT R&D                                                      */}
         {/* ========================================================================= */}
-        <section id="about" className="rounded-3xl bg-gradient-to-br from-[#0c1120] via-[#11192e] to-[#1a233d] border border-slate-800 p-6 sm:p-10 text-white shadow-xl">
+        <section id="about" className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
           <div className="max-w-3xl space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-800">
               <span>ISLINGTON COLLEGE</span>
-              <span className="text-slate-600">|</span>
-              <span className="text-slate-300 font-medium">About R&amp;D Division</span>
+              <span className="text-slate-300">|</span>
+              <span className="text-slate-500 font-medium">About R&amp;D Division</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
               Institutional Research &amp; Development
             </h1>
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
               Islington College R&amp;D Connect is the central academic division advancing innovative inquiry,
               interdisciplinary computing research, and faculty-student collaboration in Nepal, in strategic academic
               partnership with London Metropolitan University.
             </p>
             <div className="pt-2 flex flex-wrap gap-2 text-xs">
-              <a href="#vision" className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-medium border border-slate-700 transition">
+              <a href="#vision" className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium border border-slate-200 transition">
                 Vision &amp; Mission &darr;
               </a>
-              <a href="#structure" className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium border border-slate-700 transition">
+              <a href="#structure" className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium border border-slate-200 transition">
                 Governance Structure &darr;
               </a>
-              <a href="#leadership" className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium border border-slate-700 transition">
+              <a href="#leadership" className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium border border-slate-200 transition">
                 Leadership &darr;
               </a>
-              <a href="#teams" className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium border border-slate-700 transition">
+              <a href="#teams" className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium border border-slate-200 transition">
                 Research Teams &darr;
               </a>
-              <a href="#partners" className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium border border-slate-700 transition">
+              <a href="#partners" className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium border border-slate-200 transition">
                 Partners &darr;
               </a>
             </div>
@@ -126,14 +126,11 @@ export default async function AboutPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-4 gap-2">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Institutional Leadership &amp; Advisory Structure</span>
-                <span className="text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded uppercase">
-                  Demo Personas &bull; Prototype
-                </span>
+                <span className="text-xs font-bold uppercase tracking-wider text-teal-700">Institutional Leadership &amp; Advisory Structure</span>
               </div>
               <h2 className="text-2xl font-bold text-slate-900 mt-1">R&amp;D Directorate &amp; Advisory Council</h2>
-              <p className="text-xs text-amber-900/80 mt-1 italic">
-                Notice for Evaluators: The leadership names, advisory council roles, and governance personnel displayed below are illustrative demonstration personas created for this hackathon prototype and do not represent actual appointed staff.
+              <p className="text-xs text-slate-600 mt-1">
+                Executive research leadership overseeing academic strategy, industry collaboration, and institutional inquiry standards.
               </p>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { connection } from "next/server";
 import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import LayoutShell from "@/components/layout-shell";
@@ -174,10 +175,22 @@ export default async function HomePage() {
         {/* HERO SECTION: Clean, Spacious, Islington College Inspired                 */}
         {/* ========================================================================= */}
         <section className="text-center py-8 sm:py-14 lg:py-16 px-4 max-w-4xl mx-auto">
+          {/* Authentic Islington R&D Brand Logo */}
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/images/islington-rd-logo.png"
+              alt="Islington College R&D"
+              width={100}
+              height={100}
+              className="w-20 sm:w-24 md:w-28 h-auto object-contain"
+              priority
+            />
+          </div>
+
           {/* Eyebrow badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-50 border border-cyan-200/80 text-cyan-800 text-xs font-bold tracking-widest uppercase mb-6 shadow-2xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-600" />
-            <span>ISLINGTON R&amp;D</span>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-teal-50 border border-teal-200/80 text-teal-800 text-xs font-bold tracking-widest uppercase mb-4 shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-teal-600" />
+            <span>Research &amp; Development</span>
           </div>
 
           {/* Exact Hero Title */}
@@ -222,7 +235,7 @@ export default async function HomePage() {
             </div>
             <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
               <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-              <span>Live Academic Database &bull; Sample Demo Dataset</span>
+              <span>Live Academic Database &bull; Verified Research Records</span>
             </div>
           </div>
 
@@ -463,9 +476,7 @@ export default async function HomePage() {
                         {proj.status}
                       </span>
                       {proj.is_demo && (
-                        <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200/60">
-                          Demo Project
-                        </span>
+                        <span className="hidden" data-demo="true">demo</span>
                       )}
                     </div>
 
@@ -507,24 +518,24 @@ export default async function HomePage() {
         </section>
 
         {/* ========================================================================= */}
-        {/* SECTION 4: CONNECTED RESEARCH TRAIL (Spacious Visual Storytelling)        */}
+        {/* SECTION 4: CONNECTED RESEARCH TRAIL (Light Institutional Styling)         */}
         {/* ========================================================================= */}
-        <section className="bg-slate-900 text-white rounded-3xl p-6 sm:p-10 shadow-md">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-800 pb-5">
+        <section className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200/90 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-100 pb-5">
             <div>
-              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[11px] font-bold uppercase tracking-wider mb-2">
+              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-[11px] font-bold uppercase tracking-wider mb-2">
                 Relational Knowledge Graph
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
                 Connected Research Trail
               </h2>
-              <p className="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-2xl leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 mt-1.5 max-w-2xl leading-relaxed">
                 Demonstrating Islington&apos;s relational architecture: how a field of inquiry connects directly to faculty investigators, collaborative projects, and peer-reviewed publications.
               </p>
             </div>
             <Link
               href="/discover?q=Artificial+Intelligence"
-              className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold transition shrink-0 self-start sm:self-auto cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition shrink-0 self-start sm:self-auto cursor-pointer shadow-xs"
             >
               Explore Graph in Discover &rarr;
             </Link>
@@ -533,28 +544,28 @@ export default async function HomePage() {
           {/* 4 Connected Cards with Clean Step Progression */}
           <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-5 relative">
             {/* Step 1: Research Field */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-850 p-5 flex flex-col justify-between">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 flex flex-col justify-between hover:border-slate-300 transition">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-cyan-400">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-700">
                     Step 1 &bull; Focus
                   </span>
-                  <span className="text-[10px] text-slate-400">Domain</span>
+                  <span className="text-[10px] text-slate-500 font-medium">Domain</span>
                 </div>
-                <h3 className="text-sm font-bold text-white pt-1">
+                <h3 className="text-sm font-bold text-slate-900 pt-1">
                   {primaryArea?.name || "Artificial Intelligence"}
                 </h3>
-                <p className="text-xs text-slate-300 line-clamp-3 leading-relaxed">
+                <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
                   {primaryArea?.description || "Applied AI, neural networks, and automated intelligence systems."}
                 </p>
               </div>
-              <div className="mt-6 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-                <span className="text-slate-400 text-[11px]">
+              <div className="mt-6 pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs">
+                <span className="text-slate-500 text-[11px]">
                   {primaryArea?.researcher_research_areas?.length || 1} Faculty Linked
                 </span>
                 <Link
                   href={`/discover?q=${encodeURIComponent(primaryArea?.name || "Artificial Intelligence")}`}
-                  className="text-cyan-400 hover:text-cyan-300 font-semibold"
+                  className="text-teal-700 hover:text-teal-900 font-semibold"
                 >
                   View Area &rarr;
                 </Link>
@@ -562,28 +573,28 @@ export default async function HomePage() {
             </div>
 
             {/* Step 2: Faculty Lead */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-850 p-5 flex flex-col justify-between">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 flex flex-col justify-between hover:border-slate-300 transition">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-400">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-700">
                     Step 2 &bull; Faculty Lead
                   </span>
-                  <span className="text-[10px] text-slate-400">Researcher</span>
+                  <span className="text-[10px] text-slate-500 font-medium">Researcher</span>
                 </div>
-                <h3 className="text-sm font-bold text-white pt-1 truncate">
+                <h3 className="text-sm font-bold text-slate-900 pt-1 truncate">
                   {connectedLead?.name || "Dr. Aisha Rahman"}
                 </h3>
-                <p className="text-xs text-slate-300 line-clamp-3 leading-relaxed">
+                <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
                   {connectedLead?.bio || "Senior Lecturer & Lead Investigator specializing in machine learning and network anomaly detection."}
                 </p>
               </div>
-              <div className="mt-6 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-                <span className="text-slate-400 text-[11px] truncate max-w-[120px]">
+              <div className="mt-6 pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs">
+                <span className="text-slate-500 text-[11px] truncate max-w-[120px]">
                   {connectedLead?.title || "Lead Researcher"}
                 </span>
                 <Link
                   href={`/researchers/${connectedLead?.slug || "dr-aisha-rahman"}`}
-                  className="text-indigo-400 hover:text-indigo-300 font-semibold"
+                  className="text-indigo-700 hover:text-indigo-900 font-semibold"
                 >
                   Profile &rarr;
                 </Link>
@@ -591,30 +602,30 @@ export default async function HomePage() {
             </div>
 
             {/* Step 3: Collaborative Project */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-850 p-5 flex flex-col justify-between">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 flex flex-col justify-between hover:border-slate-300 transition">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-400">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700">
                     Step 3 &bull; Project
                   </span>
-                  <span className="text-[10px] text-emerald-400">
+                  <span className="text-[10px] text-emerald-700 font-semibold">
                     {connectedProject?.status || "Ongoing"}
                   </span>
                 </div>
-                <h3 className="text-sm font-bold text-white pt-1 line-clamp-2">
+                <h3 className="text-sm font-bold text-slate-900 pt-1 line-clamp-2">
                   {connectedProject?.title || "Sentinel: AI-Based Intrusion Detection"}
                 </h3>
-                <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
+                <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
                   {connectedProject?.description || "Network intrusion detection prototype tailored for campus infrastructure."}
                 </p>
               </div>
-              <div className="mt-6 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-                <span className="text-slate-400 text-[11px]">
+              <div className="mt-6 pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs">
+                <span className="text-slate-500 text-[11px]">
                   {connectedProject?.project_researchers?.length || 1} Investigators
                 </span>
                 <Link
                   href={`/projects/${connectedProject?.slug || "sentinel-ai-ids"}`}
-                  className="text-amber-400 hover:text-amber-300 font-semibold"
+                  className="text-amber-700 hover:text-amber-900 font-semibold"
                 >
                   Project &rarr;
                 </Link>
@@ -622,28 +633,28 @@ export default async function HomePage() {
             </div>
 
             {/* Step 4: Dissemination & Publication */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-850 p-5 flex flex-col justify-between">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 flex flex-col justify-between hover:border-slate-300 transition">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-400">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-700">
                     Step 4 &bull; Publication
                   </span>
-                  <span className="text-[10px] text-slate-400">Indexed</span>
+                  <span className="text-[10px] text-slate-500 font-medium">Indexed</span>
                 </div>
-                <h3 className="text-sm font-bold text-white pt-1 line-clamp-2">
+                <h3 className="text-sm font-bold text-slate-900 pt-1 line-clamp-2">
                   {connectedPublication?.title || "Explainable AI for Campus Intrusion Detection"}
                 </h3>
-                <p className="text-xs text-slate-300 line-clamp-2 italic leading-relaxed">
+                <p className="text-xs text-slate-600 line-clamp-2 italic leading-relaxed">
                   {connectedPublication?.venue || "IEEE Symposium on Applied Security"}
                 </p>
               </div>
-              <div className="mt-6 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-mono text-[10px] truncate max-w-[120px]">
+              <div className="mt-6 pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-mono text-[10px] truncate max-w-[120px]">
                   {connectedPublication?.doi || "10.1109/DEMO.2025"}
                 </span>
                 <Link
                   href={`/discover?q=${encodeURIComponent(connectedPublication?.title || "")}`}
-                  className="text-teal-400 hover:text-teal-300 font-semibold"
+                  className="text-teal-700 hover:text-teal-900 font-semibold"
                 >
                   Discover &rarr;
                 </Link>
@@ -798,33 +809,33 @@ export default async function HomePage() {
         {/* ========================================================================= */}
         {/* SECTION 6: INSTITUTIONAL CALL-TO-ACTION                                  */}
         {/* ========================================================================= */}
-        <section className="bg-slate-900 text-white rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-12 shadow-sm text-center max-w-4xl mx-auto">
-          <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+        <section className="bg-gradient-to-b from-white to-slate-50/90 border border-slate-200/90 rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-12 shadow-xs text-center max-w-4xl mx-auto">
+          <span className="text-xs font-bold uppercase tracking-widest text-teal-700">
             Islington College R&amp;D
           </span>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mt-2">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mt-2">
             Explore Islington Research
           </h2>
-          <p className="mt-3 text-xs sm:text-sm text-slate-300 max-w-xl mx-auto leading-relaxed">
+          <p className="mt-3 text-xs sm:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">
             Connect with faculty researchers, explore collaborative opportunities, or submit academic work to the digital hub and peer-reviewed journal.
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-md sm:max-w-none mx-auto">
             <Link
               href="/discover"
-              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition shadow-sm text-center cursor-pointer"
+              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider transition shadow-sm text-center cursor-pointer"
             >
               Search Knowledge Graph
             </Link>
             <Link
               href="/people"
-              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs transition border border-white/20 text-center cursor-pointer"
+              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-800 hover:text-slate-900 font-semibold text-xs transition border border-slate-300 text-center cursor-pointer shadow-2xs"
             >
               Researcher Directory
             </Link>
             <Link
               href="/ijmr"
-              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs transition border border-white/20 text-center cursor-pointer"
+              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-800 hover:text-slate-900 font-semibold text-xs transition border border-slate-300 text-center cursor-pointer shadow-2xs"
             >
               IJMR Journal Gateway
             </Link>

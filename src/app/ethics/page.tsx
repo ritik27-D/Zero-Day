@@ -14,31 +14,21 @@ export default async function EthicsAndIntegrityPage() {
     <LayoutShell activeNav="ethics">
       <div className="space-y-8 sm:space-y-10">
         {/* Header Banner */}
-        <div className="rounded-3xl bg-gradient-to-br from-[#0c1120] via-[#11192e] to-[#1a233d] border border-slate-800 p-6 sm:p-10 text-white shadow-xl">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
           <div className="max-w-3xl space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-bold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-800">
               <span>ETHICS &amp; GOVERNANCE</span>
-              <span className="text-slate-600">|</span>
-              <span className="text-slate-300 font-medium">Handbook Information Architecture</span>
+              <span className="text-slate-300">|</span>
+              <span className="text-slate-500 font-medium">Handbook Information Architecture</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
               Institutional Research Ethics, Academic Integrity &amp; AI Standards
             </h1>
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
               Islington College upholds the highest standards of rigorous, ethical, and responsible scientific inquiry.
               Review ethics clearance protocols, Research Ethics Committee (REC) guidelines, data protection policies, and AI ethics frameworks.
             </p>
           </div>
-        </div>
-
-        {/* Demo Disclaimer Notice */}
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-xs text-amber-900 flex items-start gap-3 shadow-xs">
-          <span className="px-2 py-0.5 rounded font-bold uppercase text-[10px] bg-amber-200 text-amber-900 border border-amber-300 shrink-0">
-            Governance Prototype
-          </span>
-          <p className="leading-relaxed">
-            <strong>Evaluator Notice:</strong> The Research Ethics Committee (REC) schedule, review workflows, and compliance procedures below are illustrative demonstration models created for the Islington College R&amp;D Hub hackathon prototype.
-          </p>
         </div>
 
         {/* Handbook Section Grid */}
@@ -189,9 +179,7 @@ export default async function EthicsAndIntegrityPage() {
                     Read Policy &rarr;
                   </Link>
                   {policy.is_demo && (
-                    <span className="text-[9px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                      Sample Doc
-                    </span>
+                    <span className="hidden" data-demo="true">demo</span>
                   )}
                 </div>
               </div>

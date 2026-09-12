@@ -131,9 +131,12 @@ export async function requireResearcher(): Promise<AuthSession> {
   if (!session) {
     redirect("/login");
   }
-  // Allow researchers and admins into researcher workspace
-  if (session.profile.role !== "researcher" && session.profile.role !== "admin") {
-    redirect("/");
+  // Admins must use the Admin portal, not researcher workspace
+  if (session.profile.role === "admin") {
+    redirect("/admin");
+  }
+  if (session.profile.role !== "researcher") {
+    redirect("/login");
   }
   return session;
 }
@@ -144,8 +147,8 @@ export async function requireAdmin(): Promise<AuthSession> {
     redirect("/admin/login");
   }
   if (session.profile.role !== "admin") {
-    // Authenticated non-admin is denied access to admin and routed to researcher portal
-    redirect("/researcher");
+    // Authenticated non-admin is denied access to admin
+    redirect("/admin/login?error=denied");
   }
   return session;
 }

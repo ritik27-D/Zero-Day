@@ -424,8 +424,8 @@ export default async function DiscoverPage(props: {
           <div className="rounded-2xl border border-cyan-200 bg-gradient-to-r from-cyan-50 via-indigo-50/50 to-white p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-cyan-600 animate-pulse" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-800">
+                <span className="w-2 h-2 rounded-full bg-teal-600" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-800">
                   IJMR Scholarly Gateway Match
                 </span>
               </div>

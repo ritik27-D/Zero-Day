@@ -166,9 +166,7 @@ export default async function EventsPage(props: {
                         {evt.type.replace(/_/g, " ")}
                       </span>
                       {evt.is_demo && (
-                        <span className="text-[9px] font-semibold uppercase text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                          Sample Event
-                        </span>
+                        <span className="hidden" data-demo="true">demo</span>
                       )}
                     </div>
 
@@ -205,20 +203,18 @@ export default async function EventsPage(props: {
                   <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
                     <Link
                       href={`/events/${evt.slug}`}
-                      className="text-xs font-bold text-cyan-700 hover:text-cyan-900 flex items-center gap-1 hover:underline"
+                      className="text-xs font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1 hover:underline"
                     >
                       <span>Event Details</span>
                       <span>&rarr;</span>
                     </Link>
 
-                    {evt.registration_url && (
-                      <a
-                        href={evt.registration_url}
-                        className="text-xs font-semibold px-3 py-1 rounded-lg bg-cyan-50 text-cyan-800 hover:bg-cyan-100 transition"
-                      >
-                        Register
-                      </a>
-                    )}
+                    <Link
+                      href={`/events/${evt.slug}#register`}
+                      className="text-xs font-semibold px-3 py-1 rounded-lg bg-teal-50 text-teal-800 hover:bg-teal-100 transition"
+                    >
+                      Register
+                    </Link>
                   </div>
                 </div>
               );

@@ -120,7 +120,7 @@ export default async function ProjectDetailPage(props: {
         {isPreview && (
           <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 text-xs font-semibold flex items-center justify-between shadow-2xs">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
               <span>PREVIEW MODE — Reviewing project proposal/record in draft state prior to public catalog indexing.</span>
             </div>
             <Link href="/admin?tab=projects" className="underline font-bold text-amber-950 hover:text-amber-800">

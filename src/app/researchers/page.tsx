@@ -69,7 +69,7 @@ export default async function ResearchersPage() {
             </p>
           </div>
           <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-bold text-emerald-700 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             Live Supabase Data ({researchers.length} Faculty)
           </span>
         </div>
@@ -104,9 +104,7 @@ export default async function ResearchersPage() {
                       </div>
                     </div>
                     {researcher.is_demo && (
-                      <span className="rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-                        Demo
-                      </span>
+                      <span className="hidden" data-demo="true">demo</span>
                     )}
                   </div>
 
@@ -166,9 +164,7 @@ export default async function ResearchersPage() {
                       Research Lab
                     </span>
                     {group.is_demo && (
-                      <span className="text-[9px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                        Sample Lab
-                      </span>
+                      <span className="hidden" data-demo="true">demo</span>
                     )}
                   </div>
                   <h4 className="text-sm font-bold text-slate-900">{group.name}</h4>

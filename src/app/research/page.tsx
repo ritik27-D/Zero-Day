@@ -42,34 +42,34 @@ export default async function ResearchHubPage() {
         {/* ========================================================================= */}
         {/* 1. HERO / RESEARCH HUB                                                   */}
         {/* ========================================================================= */}
-        <section className="rounded-3xl bg-gradient-to-br from-[#0c1120] via-[#11192e] to-[#1a233d] border border-slate-800 p-6 sm:p-10 text-white shadow-xl">
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
           <div className="max-w-3xl space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-800">
               <span>ACADEMIC SPECIALIZATIONS</span>
-              <span className="text-slate-600">|</span>
-              <span className="text-slate-300 font-medium">Research Hub</span>
+              <span className="text-slate-300">|</span>
+              <span className="text-slate-500 font-medium">Research Hub</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
               Research Areas, Labs &amp; Scientific Impact
             </h1>
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
               Explore Islington College’s thematic computational disciplines, specialized interest clusters, active and completed
               investigations, research facilities, and real-world technology impact.
             </p>
             <div className="pt-2 flex flex-wrap gap-2 text-xs">
-              <a href="#areas" className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-medium border border-slate-700 transition">
+              <a href="#areas" className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium border border-slate-200 transition">
                 Research Areas &darr;
               </a>
-              <a href="#groups" className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium border border-slate-700 transition">
+              <a href="#groups" className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium border border-slate-200 transition">
                 Interest Groups &darr;
               </a>
-              <a href="#projects" className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium border border-slate-700 transition">
+              <a href="#projects" className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium border border-slate-200 transition">
                 Active &amp; Completed Projects &darr;
               </a>
-              <a href="#facilities" className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium border border-slate-700 transition">
+              <a href="#facilities" className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium border border-slate-200 transition">
                 Facilities &darr;
               </a>
-              <a href="#impact" className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium border border-slate-700 transition">
+              <a href="#impact" className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium border border-slate-200 transition">
                 Research Impact &darr;
               </a>
             </div>
@@ -166,7 +166,7 @@ export default async function ResearchHubPage() {
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-600" />
                   <span>Active Research Projects ({activeProjects.length})</span>
                 </h3>
                 <Link href="/projects?status=ongoing" className="text-xs font-semibold text-emerald-700 hover:underline">
@@ -240,9 +240,6 @@ export default async function ResearchHubPage() {
                 Equipped technical spaces available for faculty investigations and mentored student development.
               </p>
             </div>
-            <span className="text-[10px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full uppercase">
-              Demo Data &bull; Facilities
-            </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -284,9 +281,6 @@ export default async function ResearchHubPage() {
                 Translating academic research into societal solutions, industrial open-source tools, and peer-reviewed international publications.
               </p>
             </div>
-            <span className="text-[10px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full uppercase shrink-0">
-              Sample Targets &bull; Prototype
-            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">

@@ -87,17 +87,17 @@ export default async function PeopleHubPage(props: {
     <LayoutShell activeNav="people">
       <div className="space-y-8 sm:space-y-10">
         {/* Header */}
-        <div className="rounded-3xl bg-gradient-to-br from-[#0c1120] via-[#11192e] to-[#1a233d] border border-slate-800 p-6 sm:p-10 text-white shadow-xl">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
           <div className="max-w-3xl space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-800">
               <span>PEOPLE &amp; FACULTY</span>
-              <span className="text-slate-600">|</span>
-              <span className="text-slate-300 font-medium">Researcher Directory</span>
+              <span className="text-slate-300">|</span>
+              <span className="text-slate-500 font-medium">Researcher Directory</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
               Islington Researchers &amp; Faculty Investigators
             </h1>
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
               Explore profiles of faculty researchers, lecturers, and student innovators across Islington College. Filter
               by academic department, specialized research area, or affiliated research lab.
             </p>

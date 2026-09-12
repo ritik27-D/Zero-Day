@@ -28,31 +28,21 @@ export default async function ResearchSupportPage(props: {
     <LayoutShell activeNav="research-support">
       <div className="space-y-8 sm:space-y-10">
         {/* Header Banner */}
-        <div className="rounded-3xl bg-gradient-to-br from-[#0c1120] via-[#11192e] to-[#1a233d] border border-slate-800 p-6 sm:p-10 text-white shadow-xl">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
           <div className="max-w-3xl space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-800">
               <span>RESEARCH SUPPORT &amp; SCHOLARLY INFRASTRUCTURE</span>
-              <span className="text-slate-600">|</span>
-              <span className="text-slate-300 font-medium">Handbook Architecture</span>
+              <span className="text-slate-300">|</span>
+              <span className="text-slate-500 font-medium">Handbook Architecture</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
               Academic Support, Methodology, Tools &amp; Templates
             </h1>
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
               Comprehensive operational support for Islington faculty and student researchers: research methodology
               design, institutional templates, publication funding, academic writing mentoring, and research compute tools.
             </p>
           </div>
-        </div>
-
-        {/* Demo Disclaimer Notice */}
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-xs text-amber-900 flex items-start gap-3 shadow-xs">
-          <span className="px-2 py-0.5 rounded font-bold uppercase text-[10px] bg-amber-200 text-amber-900 border border-amber-300 shrink-0">
-            Prototype Support Hub
-          </span>
-          <p className="leading-relaxed">
-            <strong>Evaluator Notice:</strong> The methodology guidelines, software tool access, and template downloads below represent an institutional research enablement prototype for Islington College.
-          </p>
         </div>
 
         {/* 6 Key Handbook Support Pillars */}
@@ -221,9 +211,7 @@ export default async function ResearchSupportPage(props: {
                       {res.category}
                     </span>
                     {res.is_demo && (
-                      <span className="text-[9px] font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded">
-                        Sample Resource
-                      </span>
+                      <span className="hidden" data-demo="true">demo</span>
                     )}
                   </div>
 

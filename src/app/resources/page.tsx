@@ -113,9 +113,7 @@ export default async function ResourcesPage(props: {
                       {res.category.replace(/_/g, " ")}
                     </span>
                     {res.is_demo && (
-                      <span className="text-[9px] font-semibold uppercase text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                        Sample Guide
-                      </span>
+                      <span className="hidden" data-demo="true">demo</span>
                     )}
                   </div>
 

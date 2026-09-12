@@ -81,31 +81,21 @@ export default async function FundingHubPage(props: {
     <LayoutShell activeNav="funding">
       <div className="space-y-8 sm:space-y-10">
         {/* Header Banner */}
-        <div className="rounded-3xl bg-gradient-to-br from-[#0c1120] via-[#11192e] to-[#1a233d] border border-slate-800 p-6 sm:p-10 text-white shadow-xl">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
           <div className="max-w-3xl space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-800">
               <span>GRANTS &amp; RESEARCH FUNDING</span>
-              <span className="text-slate-600">|</span>
-              <span className="text-slate-300 font-medium">Handbook Information Architecture</span>
+              <span className="text-slate-300">|</span>
+              <span className="text-slate-500 font-medium">Handbook Information Architecture</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
               Institutional Grants, Seed Capital &amp; External Funding
             </h1>
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
               Explore internal faculty seed grants, undergraduate fellowships, external government and industry
               sponsorships, proposal guidelines, and previously awarded research initiatives.
             </p>
           </div>
-        </div>
-
-        {/* Demo Funding Disclaimer Notice */}
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-xs text-amber-900 flex items-start gap-3 shadow-xs">
-          <span className="px-2 py-0.5 rounded font-bold uppercase text-[10px] bg-amber-200 text-amber-900 border border-amber-300 shrink-0">
-            Sample Calls
-          </span>
-          <p className="leading-relaxed">
-            <strong>Evaluator Notice:</strong> Seed grant amounts, fellowship stipends, and external funding calls displayed below are curated demonstration entries illustrating the institutional funding lifecycle.
-          </p>
         </div>
 
         {/* Navigation & Section Tabs */}
@@ -208,9 +198,7 @@ export default async function FundingHubPage(props: {
                         {op.type.replace("_", " ")}
                       </span>
                       {op.is_demo && (
-                        <span className="text-[9px] font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded">
-                          Sample Call
-                        </span>
+                        <span className="hidden" data-demo="true">demo</span>
                       )}
                     </div>
 

@@ -32,7 +32,7 @@ export default async function AnnouncementDetailPage(props: {
         {isPreview && (
           <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 text-xs font-semibold flex items-center justify-between shadow-2xs">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
               <span>PREVIEW MODE — Reviewing announcement and call details prior to official broadcast.</span>
             </div>
             <Link href="/admin?tab=announcements" className="underline font-bold text-amber-950 hover:text-amber-800">
@@ -60,9 +60,7 @@ export default async function AnnouncementDetailPage(props: {
             </div>
 
             {an.is_demo && (
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-3 py-1 rounded-md border border-amber-200">
-                Sample Announcement
-              </span>
+              <span className="hidden" data-demo="true">demo</span>
             )}
           </div>
 

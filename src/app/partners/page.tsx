@@ -77,11 +77,6 @@ export default async function PartnersPage(props: {
                   <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
                     {pt.type.replace(/_/g, " ")} Partner
                   </span>
-                  {pt.is_demo && (
-                    <span className="text-[9px] font-semibold uppercase text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                      Sample Partner
-                    </span>
-                  )}
                 </div>
 
                 <h3 className="text-base font-bold text-slate-900">

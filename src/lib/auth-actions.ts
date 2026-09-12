@@ -109,6 +109,12 @@ export async function signInAction(formData: FormData): Promise<{ error?: string
     return { error: "Access denied. This account does not possess administrator privileges." };
   }
 
+  if (requiredRole === "researcher" && role !== "researcher") {
+    cookieStore.delete(ACCESS_COOKIE_NAME);
+    cookieStore.delete(REFRESH_COOKIE_NAME);
+    return { error: "Access denied. Administrators must access the system via the Admin Portal." };
+  }
+
   const destination = role === "admin" ? "/admin" : "/researcher";
   return { redirectTo: destination };
 }

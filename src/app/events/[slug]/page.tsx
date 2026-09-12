@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import LayoutShell from "@/components/layout-shell";
+import { EventRegisterModal } from "@/components/event-register-modal";
 import { getEventBySlug, getEvents } from "@/lib/hub-data";
 
 export async function generateStaticParams() {
@@ -42,7 +43,7 @@ export default async function EventDetailPage(props: {
         {isPreview && (
           <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 text-xs font-semibold flex items-center justify-between shadow-2xs">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
               <span>PREVIEW MODE — Viewing draft/preview record prior to public dissemination.</span>
             </div>
             <Link href="/admin?tab=events" className="underline font-bold text-amber-950 hover:text-amber-800">
@@ -73,9 +74,7 @@ export default async function EventDetailPage(props: {
             </div>
 
             {evt.is_demo && (
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-3 py-1 rounded-md border border-amber-200">
-                Sample Demo Event
-              </span>
+              <span className="hidden" data-demo="true">demo</span>
             )}
           </div>
 
@@ -155,13 +154,22 @@ export default async function EventDetailPage(props: {
           )}
 
           {/* Registration / External Link Actions */}
-          <div className="pt-6 border-t border-slate-100 flex flex-wrap items-center gap-3">
-            {evt.registration_url && (
+          <div id="register" className="pt-6 border-t border-slate-100 flex flex-wrap items-center gap-3">
+            <EventRegisterModal
+              eventTitle={evt.title}
+              eventDate={startDateFormatted}
+              eventLocation={evt.location}
+              buttonLabel="Register for Event"
+              className="px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold uppercase tracking-wider transition shadow-sm inline-flex items-center gap-2 cursor-pointer"
+            />
+            {evt.registration_url && evt.registration_url !== "#" && (
               <a
                 href={evt.registration_url}
-                className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider transition shadow-sm"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold uppercase tracking-wider transition"
               >
-                Register for Event &rarr;
+                External Registration &nearr;
               </a>
             )}
             {evt.external_url && (

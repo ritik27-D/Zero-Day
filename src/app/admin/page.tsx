@@ -762,7 +762,7 @@ export default async function AdminPage(props: {
           <section className="rounded-2xl border border-amber-200/90 bg-amber-50/60 p-5 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
                 <h2 className="text-xs font-bold uppercase tracking-wider text-amber-900">
                   Needs Attention ({needsAttention.length} Items)
                 </h2>
