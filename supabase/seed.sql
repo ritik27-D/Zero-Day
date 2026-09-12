@@ -23,7 +23,69 @@ insert into public.publications (slug,title,abstract,status,venue,doi,published_
 ('responsible-triage-models','Responsible Triage Models for Community Clinics','DEMO DATA: An early research manuscript on accountable digital health AI.','submitted','DEMO Conference on Healthcare Technology',null,null,true)
 on conflict (slug) do update set title=excluded.title,abstract=excluded.abstract,status=excluded.status,venue=excluded.venue,doi=excluded.doi,published_at=excluded.published_at,is_demo=true;
 
-insert into public.researcher_research_areas (researcher_id,research_area_id) select r.id,a.id from public.researchers r join public.research_areas a on (r.slug,a.slug) in (('dr-aisha-rahman','artificial-intelligence'),('dr-aisha-rahman','machine-learning'),('niran-shrestha','artificial-intelligence'),('niran-shrestha','cybersecurity'),('maya-gurung','machine-learning'),('maya-gurung','healthcare-technology'),('leela-karki','artificial-intelligence'),('leela-karki','healthcare-technology')) on conflict do nothing;
-insert into public.project_researchers (project_id,researcher_id) select p.id,r.id from public.projects p join public.researchers r on (p.slug,r.slug) in (('sentinel-ai-ids','dr-aisha-rahman'),('sentinel-ai-ids','niran-shrestha'),('sentinel-ai-ids','maya-gurung'),('carepath-ai','dr-aisha-rahman'),('carepath-ai','maya-gurung'),('carepath-ai','leela-karki')) on conflict do nothing;
-insert into public.publication_researchers (publication_id,researcher_id) select p.id,r.id from public.publications p join public.researchers r on (p.slug,r.slug) in (('explainable-ai-intrusion-detection','dr-aisha-rahman'),('explainable-ai-intrusion-detection','niran-shrestha'),('explainable-ai-intrusion-detection','maya-gurung'),('responsible-triage-models','maya-gurung'),('responsible-triage-models','leela-karki')) on conflict do nothing;
-insert into public.project_publications (project_id,publication_id) select p.id,u.id from public.projects p join public.publications u on (p.slug,u.slug) in (('sentinel-ai-ids','explainable-ai-intrusion-detection'),('carepath-ai','responsible-triage-models')) on conflict do nothing;
+insert into public.researcher_research_areas (researcher_id, research_area_id)
+select r.id, a.id
+from (values
+  ('dr-aisha-rahman', 'artificial-intelligence'),
+  ('dr-aisha-rahman', 'machine-learning'),
+  ('niran-shrestha', 'artificial-intelligence'),
+  ('niran-shrestha', 'cybersecurity'),
+  ('maya-gurung', 'machine-learning'),
+  ('maya-gurung', 'healthcare-technology'),
+  ('leela-karki', 'artificial-intelligence'),
+  ('leela-karki', 'healthcare-technology')
+) as map(researcher_slug, area_slug)
+join public.researchers r on r.slug = map.researcher_slug
+join public.research_areas a on a.slug = map.area_slug
+on conflict do nothing;
+
+insert into public.project_researchers (project_id, researcher_id)
+select p.id, r.id
+from (values
+  ('sentinel-ai-ids', 'dr-aisha-rahman'),
+  ('sentinel-ai-ids', 'niran-shrestha'),
+  ('sentinel-ai-ids', 'maya-gurung'),
+  ('carepath-ai', 'dr-aisha-rahman'),
+  ('carepath-ai', 'maya-gurung'),
+  ('carepath-ai', 'leela-karki')
+) as map(project_slug, researcher_slug)
+join public.projects p on p.slug = map.project_slug
+join public.researchers r on r.slug = map.researcher_slug
+on conflict do nothing;
+
+insert into public.publication_researchers (publication_id, researcher_id)
+select pub.id, r.id
+from (values
+  ('explainable-ai-intrusion-detection', 'dr-aisha-rahman'),
+  ('explainable-ai-intrusion-detection', 'niran-shrestha'),
+  ('explainable-ai-intrusion-detection', 'maya-gurung'),
+  ('responsible-triage-models', 'maya-gurung'),
+  ('responsible-triage-models', 'leela-karki')
+) as map(publication_slug, researcher_slug)
+join public.publications pub on pub.slug = map.publication_slug
+join public.researchers r on r.slug = map.researcher_slug
+on conflict do nothing;
+
+insert into public.project_publications (project_id, publication_id)
+select p.id, pub.id
+from (values
+  ('sentinel-ai-ids', 'explainable-ai-intrusion-detection'),
+  ('carepath-ai', 'responsible-triage-models')
+) as map(project_slug, publication_slug)
+join public.projects p on p.slug = map.project_slug
+join public.publications pub on pub.slug = map.publication_slug
+on conflict do nothing;
+
+insert into public.project_research_areas (project_id, research_area_id)
+select p.id, a.id
+from (values
+  ('sentinel-ai-ids', 'artificial-intelligence'),
+  ('sentinel-ai-ids', 'machine-learning'),
+  ('sentinel-ai-ids', 'cybersecurity'),
+  ('carepath-ai', 'artificial-intelligence'),
+  ('carepath-ai', 'machine-learning'),
+  ('carepath-ai', 'healthcare-technology')
+) as map(project_slug, area_slug)
+join public.projects p on p.slug = map.project_slug
+join public.research_areas a on a.slug = map.area_slug
+on conflict do nothing;
