@@ -165,9 +165,6 @@ export default async function EventsPage(props: {
                       <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-cyan-50 text-cyan-700 border border-cyan-200">
                         {evt.type.replace(/_/g, " ")}
                       </span>
-                      {evt.is_demo && (
-                        <span className="hidden" data-demo="true">demo</span>
-                      )}
                     </div>
 
                     <Link href={`/events/${evt.slug}`} className="block group">

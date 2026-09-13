@@ -1,8 +1,10 @@
 import Link from "next/link";
+import Image from "next/image";
 import { connection } from "next/server";
 import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import LayoutShell from "@/components/layout-shell";
 import { getResearchGroups } from "@/lib/hub-data";
+import { getResearcherPortrait } from "@/lib/researcher-images";
 
 type ResearcherItem = {
   id: string;
@@ -219,12 +221,14 @@ export default async function PeopleHubPage(props: {
                     <div>
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-600 text-white font-bold flex items-center justify-center text-xs shadow-sm">
-                            {researcher.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .slice(0, 2)
-                              .join("")}
+                          <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-100 shadow-sm shrink-0">
+                            <Image
+                              src={getResearcherPortrait(researcher.slug)}
+                              alt={`${researcher.name} portrait`}
+                              fill
+                              sizes="48px"
+                              className="object-cover"
+                            />
                           </div>
                           <div>
                             <h2 className="text-sm font-bold text-slate-900 leading-snug">
@@ -233,11 +237,6 @@ export default async function PeopleHubPage(props: {
                             <p className="text-xs font-semibold text-cyan-700">{researcher.title}</p>
                           </div>
                         </div>
-                        {researcher.is_demo && (
-                          <span className="rounded bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-[9px] font-bold text-amber-800 uppercase">
-                            Demo
-                          </span>
-                        )}
                       </div>
 
                       <p className="mt-3 text-xs text-slate-600 line-clamp-2 leading-relaxed">

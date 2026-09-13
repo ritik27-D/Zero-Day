@@ -180,11 +180,6 @@ export default async function ResearchHubPage() {
                       <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
                         Ongoing
                       </span>
-                      {proj.is_demo && (
-                        <span className="text-[9px] text-amber-700 bg-amber-50 px-1 rounded uppercase font-semibold">
-                          Demo
-                        </span>
-                      )}
                     </div>
                     <Link href={`/projects/${proj.slug}`} className="font-bold text-xs text-slate-900 hover:text-emerald-700 block">
                       {proj.title}

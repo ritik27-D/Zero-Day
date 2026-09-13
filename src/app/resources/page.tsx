@@ -112,9 +112,6 @@ export default async function ResourcesPage(props: {
                     <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
                       {res.category.replace(/_/g, " ")}
                     </span>
-                    {res.is_demo && (
-                      <span className="hidden" data-demo="true">demo</span>
-                    )}
                   </div>
 
                   <Link href={`/resources/${res.slug}`} className="block group">

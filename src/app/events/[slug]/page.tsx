@@ -73,9 +73,6 @@ export default async function EventDetailPage(props: {
               </span>
             </div>
 
-            {evt.is_demo && (
-              <span className="hidden" data-demo="true">demo</span>
-            )}
           </div>
 
           <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">
@@ -169,7 +166,7 @@ export default async function EventDetailPage(props: {
                 rel="noopener noreferrer"
                 className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold uppercase tracking-wider transition"
               >
-                External Registration &nearr;
+                External Registration &#8599;
               </a>
             )}
             {evt.external_url && (
@@ -179,7 +176,7 @@ export default async function EventDetailPage(props: {
                 rel="noopener noreferrer"
                 className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold uppercase tracking-wider transition"
               >
-                External Event Page &nearr;
+                External Event Page &#8599;
               </a>
             )}
           </div>

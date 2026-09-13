@@ -1,6 +1,7 @@
 import { listSubmissionsForResearcher, listAllSubmissions } from "./submissions";
 import { listUserConversations } from "./messaging";
 import { getAnnouncements, getRecentAdminActivity, getNeedsAttentionItems } from "./hub-data";
+import { listRecentResearcherActivityLogs } from "./researcher-logs";
 
 export type NotificationItem = {
   id: string;
@@ -8,6 +9,7 @@ export type NotificationItem = {
     | "submission_approved"
     | "submission_rejected"
     | "submission_pending"
+    | "researcher_log"
     | "message"
     | "announcement"
     | "alert"
@@ -156,7 +158,27 @@ export async function getAdminNotifications(): Promise<{
     // ignore
   }
 
-  // 2. Hub items needing attention
+  // 2. Newly submitted researcher activity logs
+  try {
+    const logs = await listRecentResearcherActivityLogs(8);
+    for (const log of logs.filter((entry) => entry.status === "pending")) {
+      const researcher = Array.isArray(log.researchers) ? log.researchers[0] : log.researchers;
+      notifications.push({
+        id: `log-${log.id}`,
+        type: "researcher_log",
+        severity: "info",
+        title: `New Research Log: ${log.project_name}`,
+        message: `${researcher?.name || "Researcher"} logged ${log.activity_date}, ${log.duration}; mentor ${log.mentor_attendance}, student ${log.student_attendance}.`,
+        timestamp: log.created_at,
+        link: "/admin",
+        unread: true,
+      });
+    }
+  } catch {
+    // The activity table may not be applied yet.
+  }
+
+  // 3. Hub items needing attention
   try {
     const attentionItems = await getNeedsAttentionItems(pendingSubsCount);
     for (const item of attentionItems.slice(0, 4)) {
@@ -178,7 +200,7 @@ export async function getAdminNotifications(): Promise<{
     // ignore
   }
 
-  // 3. Recent Admin Activity Audit
+  // 4. Recent Admin Activity Audit
   try {
     const activities = await getRecentAdminActivity();
     for (const act of activities.slice(0, 3)) {

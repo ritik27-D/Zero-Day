@@ -1,7 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import { connection } from "next/server";
-import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { createSupabaseAdminClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { signOutAction } from "@/lib/auth-actions";
 import { listAllSubmissions } from "@/lib/submissions";
@@ -29,7 +28,9 @@ import {
   saveResearchGroupAction,
   deleteResearchGroupAction,
   bulkEntityAction,
+  reviewResearcherLogAction,
 } from "./actions";
+import { listRecentResearcherActivityLogs } from "@/lib/researcher-logs";
 import {
   getEvents,
   getOpportunities,
@@ -37,8 +38,6 @@ import {
   getPartners,
   getAnnouncements,
   getResearchGroups,
-  getNeedsAttentionItems,
-  getRecentAdminActivity,
 } from "@/lib/hub-data";
 
 type ResearchArea = {
@@ -571,7 +570,7 @@ export default async function AdminPage(props: {
   }
 
   // Server-side authentication and role check (redirects to /admin/login if not admin)
-  const session = await requireAdmin();
+  await requireAdmin();
 
   const searchParams = await props.searchParams;
   const activeTab = searchParams.tab || "researchers";
@@ -586,7 +585,7 @@ export default async function AdminPage(props: {
   const editingAnnouncementId = searchParams.editAnnouncement;
   const editingGroupId = searchParams.editGroup;
 
-  const client = createSupabaseServerClient();
+  const client = createSupabaseAdminClient();
 
   const [
     researchersRes,
@@ -612,12 +611,12 @@ export default async function AdminPage(props: {
       .order("title"),
     client.from("research_areas").select("id, name, slug").order("name"),
     client.from("publications").select("id, title, slug").order("title"),
-    getEvents(),
-    getOpportunities(),
-    getResources(),
-    getPartners(),
-    getAnnouncements(),
-    getResearchGroups(),
+    getEvents(true),
+    getOpportunities(true),
+    getResources(true),
+    getPartners(true),
+    getAnnouncements(true),
+    getResearchGroups(true),
   ]);
 
   const researchers = (researchersRes.data ?? []) as unknown as Researcher[];
@@ -627,10 +626,15 @@ export default async function AdminPage(props: {
 
   // Fetch submissions for review
   const submissions = ((await listAllSubmissions()) ?? []) as unknown as Submission[];
+  let researcherLogs: Awaited<ReturnType<typeof listRecentResearcherActivityLogs>> = [];
+  try {
+    researcherLogs = await listRecentResearcherActivityLogs(50);
+  } catch {
+    researcherLogs = [];
+  }
 
   const pendingSubmissionsCount = submissions.filter((s) => s.status === "pending").length;
-  const needsAttention = await getNeedsAttentionItems(pendingSubmissionsCount);
-  const recentActivity = await getRecentAdminActivity();
+  const pendingLogsCount = researcherLogs.filter((log) => log.status === "pending").length;
   const { notifications: adminNotifications, unreadCount: adminUnreadCount } = await getAdminNotifications();
 
   const filterQ = (searchParams.q || "").toLowerCase().trim();
@@ -707,106 +711,31 @@ export default async function AdminPage(props: {
   );
 
   return (
-    <LayoutShell activeNav="admin">
-      <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-8">
-        {/* Admin Header with Official Brand Logo & Notifications */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
-          <div className="flex items-center gap-4">
-            <Link href="/admin" className="hidden sm:inline-block shrink-0 group">
-              <Image
-                src="/images/islington-rd-logo.png"
-                alt="Islington College Research & Development"
-                width={140}
-                height={55}
-                className="h-10 w-auto object-contain group-hover:opacity-90 transition"
-                priority
-              />
-            </Link>
-            <div className="hidden sm:block h-9 w-px bg-slate-200" />
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="rounded bg-indigo-100 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-indigo-800 border border-indigo-200">
-                  Admin Portal
-                </span>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                  Islington College Governance
-                </p>
-              </div>
-              <h1 className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-                Research Data &amp; Submissions Management
-              </h1>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Admin Notifications Dropdown */}
-            <NotificationsDropdown
-              initialNotifications={adminNotifications}
-              initialUnreadCount={adminUnreadCount}
-              role="admin"
-              align="left"
-            />
-
-            <div className="hidden sm:flex items-center gap-2 border-l border-slate-200 pl-3">
-              <span className="w-2 h-2 rounded-full bg-indigo-500" />
-              <span className="text-xs font-bold text-slate-800">
-                Admin: {session.profile.username}
-              </span>
-            </div>
-
-            <Link
-              href="/"
-              className="text-xs font-semibold text-slate-700 hover:text-slate-900 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition"
+    <LayoutShell
+      activeNav="admin"
+      adminNavContent={
+        <div className="flex items-center gap-3 sm:gap-4">
+          <span className="rounded bg-indigo-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-indigo-800 border border-indigo-200">
+            Admin Mode
+          </span>
+          <NotificationsDropdown
+            initialNotifications={adminNotifications}
+            initialUnreadCount={adminUnreadCount}
+            role="admin"
+            align="left"
+          />
+          <form action={signOutAction}>
+            <button
+              type="submit"
+              className="rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition cursor-pointer"
             >
-              &larr; Public Hub
-            </Link>
-            <form action={signOutAction}>
-              <button
-                type="submit"
-                className="rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition cursor-pointer"
-              >
-                Sign Out
-              </button>
-            </form>
-          </div>
+              Sign Out
+            </button>
+          </form>
         </div>
-
-        {/* Governance Notifications & Pending Actions Alert Banner */}
-        {adminUnreadCount > 0 && (
-          <div className="rounded-2xl border border-indigo-200 bg-gradient-to-r from-indigo-50/90 via-purple-50/40 to-white p-5 shadow-xs flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-bold text-slate-900">
-                    Administrator Governance Queue
-                  </h2>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-indigo-600 text-white">
-                    {adminUnreadCount} Pending Item{adminUnreadCount > 1 ? "s" : ""}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 mt-0.5">
-                  Pending change requests and system audit notifications awaiting governance review.
-                </p>
-              </div>
-            </div>
-
-            <Link
-              href="/admin?tab=submissions"
-              className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-xs font-semibold shadow-xs transition flex items-center gap-1.5"
-            >
-              <span>Review Submissions Queue</span>
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-        )}
-
+      }
+    >
+      <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-8">
         {/* Feedback Alerts */}
         {successMsg ? (
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
@@ -819,102 +748,6 @@ export default async function AdminPage(props: {
             {errorMsg}
           </div>
         ) : null}
-
-        {/* Needs Attention Panel (Dynamically Computed) */}
-        {needsAttention.length > 0 && (
-          <section className="rounded-2xl border border-amber-200/90 bg-amber-50/60 p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                <h2 className="text-xs font-bold uppercase tracking-wider text-amber-900">
-                  Needs Attention ({needsAttention.length} Items)
-                </h2>
-              </div>
-              <span className="text-[11px] font-semibold text-amber-700">
-                Action Required
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {needsAttention.map((item) => {
-                const badgeColor =
-                  item.severity === "urgent"
-                    ? "bg-rose-100 text-rose-800 border-rose-200"
-                    : item.severity === "warning"
-                    ? "bg-amber-100 text-amber-800 border-amber-200"
-                    : "bg-blue-100 text-blue-800 border-blue-200";
-
-                return (
-                  <div
-                    key={item.id}
-                    className="rounded-xl border border-amber-200/80 bg-white p-3.5 shadow-2xs space-y-1.5 flex flex-col justify-between"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${badgeColor}`}>
-                          {item.type} &bull; {item.severity}
-                        </span>
-                      </div>
-                      <h3 className="text-xs font-bold text-slate-900 leading-snug">
-                        {item.title}
-                      </h3>
-                      <p className="text-[11px] text-slate-600 leading-relaxed">
-                        {item.description}
-                      </p>
-                    </div>
-
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-end">
-                      <Link
-                        href={item.link}
-                        className="text-xs font-bold text-cyan-700 hover:text-cyan-900 flex items-center gap-1"
-                      >
-                        <span>Resolve</span>
-                        <span>&rarr;</span>
-                      </Link>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* Recent Activity & Audit Trail (Surfacing existing activity_audit table) */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900">
-                Recent Administrative Activity &amp; Audit Trail (activity_audit)
-              </h2>
-            </div>
-            <span className="text-[11px] text-slate-500 font-mono">
-              Live Governance Trail
-            </span>
-          </div>
-
-          <div className="divide-y divide-slate-100">
-            {recentActivity.map((act) => {
-              const timeStr = new Date(act.created_at).toLocaleString("en-US", {
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              });
-              return (
-                <div key={act.id} className="py-2.5 flex flex-wrap items-center justify-between text-xs gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">
-                      {act.action}
-                    </span>
-                    <span className="text-slate-800 font-medium">{act.description}</span>
-                  </div>
-                  <span className="text-slate-400 font-mono shrink-0">{timeStr}</span>
-                </div>
-              );
-            })}
-          </div>
-        </section>
 
         {/* Tab Navigation */}
         <div className="flex flex-wrap gap-1.5 border-b border-slate-200 pb-px text-xs">
@@ -1016,6 +849,21 @@ export default async function AdminPage(props: {
             Groups ({researchGroups.length})
           </Link>
           <Link
+            href="/admin?tab=logs"
+            className={`px-4 py-2.5 font-semibold rounded-t-lg border-b-2 transition flex items-center gap-1.5 ${
+              activeTab === "logs"
+                ? "border-indigo-600 bg-white text-indigo-700 shadow-xs"
+                : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            <span>Logs</span>
+            {pendingLogsCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white">
+                {pendingLogsCount}
+              </span>
+            )}
+          </Link>
+          <Link
             href="/admin?tab=accounts"
             className={`px-4 py-2.5 font-semibold rounded-t-lg border-b-2 transition ${
               activeTab === "accounts"
@@ -1026,6 +874,68 @@ export default async function AdminPage(props: {
             Accounts
           </Link>
         </div>
+
+        {activeTab === "logs" ? (
+          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">Researcher Activity Logs</h2>
+                <p className="mt-1 text-sm text-slate-600">Review attendance and supervision records submitted by researchers.</p>
+              </div>
+              <span className="text-sm font-semibold text-slate-500">{researcherLogs.length} records</span>
+            </div>
+
+            {researcherLogs.length === 0 ? (
+              <p className="py-10 text-center text-sm text-slate-500">No researcher logs have been submitted yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {researcherLogs.map((log) => {
+                  const researcher = Array.isArray(log.researchers) ? log.researchers[0] : log.researchers;
+                  return (
+                    <article key={log.id} className="rounded-xl border border-slate-200 bg-slate-50/60 p-5">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <h3 className="text-base font-bold text-slate-900">{log.project_name}</h3>
+                          <p className="mt-1 text-sm text-slate-600">Researcher: {researcher?.name || "Researcher"}</p>
+                          <p className="text-sm text-slate-600">Mentor: {log.mentor_name} &bull; {log.activity_date} &bull; {log.duration}</p>
+                        </div>
+                        <span className={`rounded-full border px-3 py-1 text-xs font-bold uppercase ${
+                          log.status === "approved"
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                            : log.status === "rejected"
+                            ? "border-rose-200 bg-rose-50 text-rose-700"
+                            : "border-amber-200 bg-amber-50 text-amber-700"
+                        }`}>
+                          {log.status}
+                        </span>
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-700">
+                        <span className="rounded bg-white px-2.5 py-1 border border-slate-200">Mentor: {log.mentor_attendance}</span>
+                        <span className="rounded bg-white px-2.5 py-1 border border-slate-200">Student: {log.student_attendance}</span>
+                        <span className="rounded bg-white px-2.5 py-1 border border-slate-200">Mode: {log.attendance_mode}</span>
+                      </div>
+                      {log.status === "pending" && (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <form action={reviewResearcherLogAction}>
+                            <input type="hidden" name="id" value={log.id} />
+                            <input type="hidden" name="status" value="approved" />
+                            <button type="submit" className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 transition">Accept</button>
+                          </form>
+                          <form action={reviewResearcherLogAction}>
+                            <input type="hidden" name="id" value={log.id} />
+                            <input type="hidden" name="status" value="rejected" />
+                            <button type="submit" className="rounded-lg bg-rose-600 px-4 py-2 text-xs font-bold text-white hover:bg-rose-700 transition">Reject</button>
+                          </form>
+                        </div>
+                      )}
+                      {log.admin_notes && <p className="mt-3 text-sm text-slate-600">Admin notes: {log.admin_notes}</p>}
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        ) : null}
 
         {/* TAB 1: RESEARCHERS MANAGEMENT */}
         {activeTab === "researchers" ? (
@@ -1083,7 +993,7 @@ export default async function AdminPage(props: {
                       name="email"
                       required
                       defaultValue={editingResearcher?.email ?? ""}
-                      placeholder="e.g. aisha.rahman@demo.islington.edu.np"
+                      placeholder="e.g. aisha.rahman@islington.edu.np"
                       className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
                     />
                   </div>
@@ -1144,7 +1054,7 @@ export default async function AdminPage(props: {
                       className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                     />
                     <label htmlFor="is_demo_researcher" className="text-xs text-slate-600">
-                      Mark as Demo Data
+                      Include in institutional records
                     </label>
                   </div>
 
@@ -1191,11 +1101,6 @@ export default async function AdminPage(props: {
                             >
                               {r.name}
                             </Link>
-                            {r.is_demo ? (
-                              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
-                                Demo
-                              </span>
-                            ) : null}
                           </div>
                           <p className="text-xs text-slate-500">{r.title}</p>
                           <p className="text-xs text-slate-400 font-mono">{r.email}</p>
@@ -1220,7 +1125,7 @@ export default async function AdminPage(props: {
                             target="_blank"
                             className="rounded border border-indigo-200 bg-indigo-50/70 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition"
                           >
-                            Preview Profile &nearr;
+                            Preview Profile &#8599;
                           </Link>
                           <Link
                             href={`/admin?tab=researchers&editResearcher=${r.id}`}
@@ -1423,7 +1328,7 @@ export default async function AdminPage(props: {
                       className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                     />
                     <label htmlFor="is_demo_proj" className="text-xs text-slate-600">
-                      Mark as Demo Data
+                      Include in institutional records
                     </label>
                   </div>
 
@@ -1453,7 +1358,7 @@ export default async function AdminPage(props: {
                       className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1"
                     >
                       <span>Preview Selected Project</span>
-                      <span>&nearr;</span>
+                      <span>&#8599;</span>
                     </Link>
                   )}
                 </div>
@@ -1471,7 +1376,7 @@ export default async function AdminPage(props: {
                   ]}
                 />
 
-                <form action={bulkEntityAction}>
+                <form id="bulk-projects" action={bulkEntityAction}>
                   <input type="hidden" name="entity_type" value="projects" />
                   <AdminBulkActionBar
                     statusOptions={[
@@ -1480,6 +1385,7 @@ export default async function AdminPage(props: {
                       { value: "completed", label: "Completed" },
                     ]}
                   />
+                </form>
 
                   <div className="mt-4 divide-y divide-slate-100">
                     {displayedProjects.map((p) => {
@@ -1496,6 +1402,7 @@ export default async function AdminPage(props: {
                             <input
                               type="checkbox"
                               name="selected_ids"
+                              form="bulk-projects"
                               value={p.id}
                               className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                             />
@@ -1511,11 +1418,6 @@ export default async function AdminPage(props: {
                                 <span className="rounded bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700">
                                   {p.status}
                                 </span>
-                                {p.is_demo ? (
-                                  <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
-                                    Demo
-                                  </span>
-                                ) : null}
                               </div>
                               <p className="text-xs text-slate-500 mt-1 line-clamp-2">{p.description}</p>
 
@@ -1547,7 +1449,7 @@ export default async function AdminPage(props: {
                               target="_blank"
                               className="rounded border border-indigo-200 bg-indigo-50/70 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition"
                             >
-                              Preview &nearr;
+                              Preview &#8599;
                             </Link>
                             <Link
                               href={`/admin?tab=projects&editProject=${p.id}`}
@@ -1555,21 +1457,20 @@ export default async function AdminPage(props: {
                             >
                               Edit
                             </Link>
-                            <button
-                              formAction={deleteProjectAction}
-                              name="id"
-                              value={p.id}
-                              type="submit"
-                              className="rounded border border-red-200 bg-white px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
-                            >
-                              Delete
-                            </button>
+                            <form action={deleteProjectAction}>
+                              <input type="hidden" name="id" value={p.id} />
+                              <button
+                                type="submit"
+                                className="rounded border border-red-200 bg-white px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
+                              >
+                                Delete
+                              </button>
+                            </form>
                           </div>
                         </div>
                       );
                     })}
                   </div>
-                </form>
               </section>
             </div>
           </div>
@@ -1706,7 +1607,7 @@ export default async function AdminPage(props: {
                 ]}
               />
 
-              <form action={bulkEntityAction}>
+              <form id="bulk-events" action={bulkEntityAction}>
                 <input type="hidden" name="entity_type" value="events" />
                 <AdminBulkActionBar
                   statusOptions={[
@@ -1716,6 +1617,7 @@ export default async function AdminPage(props: {
                     { value: "archived", label: "Archived" },
                   ]}
                 />
+                </form>
 
                 <div className="space-y-3 mt-4">
                   {displayedEvents.map((evt) => (
@@ -1727,6 +1629,7 @@ export default async function AdminPage(props: {
                         <input
                           type="checkbox"
                           name="selected_ids"
+                          form="bulk-events"
                           value={evt.id}
                           className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                         />
@@ -1751,7 +1654,7 @@ export default async function AdminPage(props: {
                           target="_blank"
                           className="px-2.5 py-1 rounded-lg border border-indigo-200 bg-indigo-50/70 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition"
                         >
-                          Preview &nearr;
+                          Preview &#8599;
                         </Link>
                         <Link
                           href={`/admin?tab=events&editEvent=${evt.id}`}
@@ -1759,20 +1662,19 @@ export default async function AdminPage(props: {
                         >
                           Edit
                         </Link>
-                        <button
-                          formAction={deleteEventAction}
-                          name="id"
-                          value={evt.id}
-                          type="submit"
-                          className="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100"
-                        >
-                          Delete
-                        </button>
+                        <form action={deleteEventAction}>
+                          <input type="hidden" name="id" value={evt.id} />
+                          <button
+                            type="submit"
+                            className="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                          >
+                            Delete
+                          </button>
+                        </form>
                       </div>
                     </div>
                   ))}
                 </div>
-              </form>
             </div>
 
             {/* Event Form */}
@@ -1788,7 +1690,7 @@ export default async function AdminPage(props: {
                     className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1"
                   >
                     <span>Preview Layout</span>
-                    <span>&nearr;</span>
+                    <span>&#8599;</span>
                   </Link>
                 )}
               </div>
@@ -1949,7 +1851,7 @@ export default async function AdminPage(props: {
                 ]}
               />
 
-              <form action={bulkEntityAction}>
+              <form id="bulk-opportunities" action={bulkEntityAction}>
                 <input type="hidden" name="entity_type" value="opportunities" />
                 <AdminBulkActionBar
                   statusOptions={[
@@ -1959,6 +1861,7 @@ export default async function AdminPage(props: {
                     { value: "archived", label: "Archived" },
                   ]}
                 />
+                </form>
 
                 <div className="space-y-3 mt-4">
                   {displayedOpportunities.map((op) => (
@@ -1970,6 +1873,7 @@ export default async function AdminPage(props: {
                         <input
                           type="checkbox"
                           name="selected_ids"
+                          form="bulk-opportunities"
                           value={op.id}
                           className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                         />
@@ -1994,7 +1898,7 @@ export default async function AdminPage(props: {
                           target="_blank"
                           className="px-2.5 py-1 rounded-lg border border-indigo-200 bg-indigo-50/70 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition"
                         >
-                          Preview &nearr;
+                          Preview &#8599;
                         </Link>
                         <Link
                           href={`/admin?tab=opportunities&editOpportunity=${op.id}`}
@@ -2002,20 +1906,19 @@ export default async function AdminPage(props: {
                         >
                           Edit
                         </Link>
-                        <button
-                          formAction={deleteOpportunityAction}
-                          name="id"
-                          value={op.id}
-                          type="submit"
-                          className="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100"
-                        >
-                          Delete
-                        </button>
+                        <form action={deleteOpportunityAction}>
+                          <input type="hidden" name="id" value={op.id} />
+                          <button
+                            type="submit"
+                            className="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                          >
+                            Delete
+                          </button>
+                        </form>
                       </div>
                     </div>
                   ))}
                 </div>
-              </form>
             </div>
 
             {/* Opportunity Form */}
@@ -2031,7 +1934,7 @@ export default async function AdminPage(props: {
                     className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1"
                   >
                     <span>Preview Layout</span>
-                    <span>&nearr;</span>
+                    <span>&#8599;</span>
                   </Link>
                 )}
               </div>
@@ -2173,7 +2076,7 @@ export default async function AdminPage(props: {
                 ]}
               />
 
-              <form action={bulkEntityAction}>
+              <form id="bulk-resources" action={bulkEntityAction}>
                 <input type="hidden" name="entity_type" value="resources" />
                 <AdminBulkActionBar
                   statusOptions={[
@@ -2182,6 +2085,7 @@ export default async function AdminPage(props: {
                     { value: "archived", label: "Archived" },
                   ]}
                 />
+                </form>
 
                 <div className="space-y-3 mt-4">
                   {displayedResources.map((res) => (
@@ -2193,6 +2097,7 @@ export default async function AdminPage(props: {
                         <input
                           type="checkbox"
                           name="selected_ids"
+                          form="bulk-resources"
                           value={res.id}
                           className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                         />
@@ -2211,7 +2116,7 @@ export default async function AdminPage(props: {
                           target="_blank"
                           className="px-2.5 py-1 rounded-lg border border-indigo-200 bg-indigo-50/70 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition"
                         >
-                          Preview &nearr;
+                          Preview &#8599;
                         </Link>
                         <Link
                           href={`/admin?tab=resources&editResource=${res.id}`}
@@ -2219,20 +2124,19 @@ export default async function AdminPage(props: {
                         >
                           Edit
                         </Link>
-                        <button
-                          formAction={deleteResourceAction}
-                          name="id"
-                          value={res.id}
-                          type="submit"
-                          className="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100"
-                        >
-                          Delete
-                        </button>
+                        <form action={deleteResourceAction}>
+                          <input type="hidden" name="id" value={res.id} />
+                          <button
+                            type="submit"
+                            className="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                          >
+                            Delete
+                          </button>
+                        </form>
                       </div>
                     </div>
                   ))}
                 </div>
-              </form>
             </div>
 
             {/* Resource Form */}
@@ -2248,7 +2152,7 @@ export default async function AdminPage(props: {
                     className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1"
                   >
                     <span>Preview Layout</span>
-                    <span>&nearr;</span>
+                    <span>&#8599;</span>
                   </Link>
                 )}
               </div>
@@ -2362,7 +2266,7 @@ export default async function AdminPage(props: {
                 ]}
               />
 
-              <form action={bulkEntityAction}>
+              <form id="bulk-partners" action={bulkEntityAction}>
                 <input type="hidden" name="entity_type" value="partners" />
                 <AdminBulkActionBar
                   statusOptions={[
@@ -2370,6 +2274,7 @@ export default async function AdminPage(props: {
                     { value: "inactive", label: "Inactive" },
                   ]}
                 />
+                </form>
 
                 <div className="space-y-3 mt-4">
                   {displayedPartners.map((pt) => (
@@ -2381,6 +2286,7 @@ export default async function AdminPage(props: {
                         <input
                           type="checkbox"
                           name="selected_ids"
+                          form="bulk-partners"
                           value={pt.id}
                           className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                         />
@@ -2400,20 +2306,19 @@ export default async function AdminPage(props: {
                         >
                           Edit
                         </Link>
-                        <button
-                          formAction={deletePartnerAction}
-                          name="id"
-                          value={pt.id}
-                          type="submit"
-                          className="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100"
-                        >
-                          Delete
-                        </button>
+                        <form action={deletePartnerAction}>
+                          <input type="hidden" name="id" value={pt.id} />
+                          <button
+                            type="submit"
+                            className="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                          >
+                            Delete
+                          </button>
+                        </form>
                       </div>
                     </div>
                   ))}
                 </div>
-              </form>
             </div>
 
             {/* Partner Form */}
@@ -2518,7 +2423,7 @@ export default async function AdminPage(props: {
                 ]}
               />
 
-              <form action={bulkEntityAction}>
+              <form id="bulk-announcements" action={bulkEntityAction}>
                 <input type="hidden" name="entity_type" value="announcements" />
                 <AdminBulkActionBar
                   statusOptions={[
@@ -2527,6 +2432,7 @@ export default async function AdminPage(props: {
                     { value: "archived", label: "Archived" },
                   ]}
                 />
+                </form>
 
                 <div className="space-y-3 mt-4">
                   {displayedAnnouncements.map((an) => (
@@ -2538,6 +2444,7 @@ export default async function AdminPage(props: {
                         <input
                           type="checkbox"
                           name="selected_ids"
+                          form="bulk-announcements"
                           value={an.id}
                           className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                         />
@@ -2561,7 +2468,7 @@ export default async function AdminPage(props: {
                           target="_blank"
                           className="px-2.5 py-1 rounded-lg border border-indigo-200 bg-indigo-50/70 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition"
                         >
-                          Preview &nearr;
+                          Preview &#8599;
                         </Link>
                         <Link
                           href={`/admin?tab=announcements&editAnnouncement=${an.id}`}
@@ -2569,20 +2476,19 @@ export default async function AdminPage(props: {
                         >
                           Edit
                         </Link>
-                        <button
-                          formAction={deleteAnnouncementAction}
-                          name="id"
-                          value={an.id}
-                          type="submit"
-                          className="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100"
-                        >
-                          Delete
-                        </button>
+                        <form action={deleteAnnouncementAction}>
+                          <input type="hidden" name="id" value={an.id} />
+                          <button
+                            type="submit"
+                            className="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100"
+                          >
+                            Delete
+                          </button>
+                        </form>
                       </div>
                     </div>
                   ))}
                 </div>
-              </form>
             </div>
 
             {/* Announcement Form */}
@@ -2598,7 +2504,7 @@ export default async function AdminPage(props: {
                     className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1"
                   >
                     <span>Preview Layout</span>
-                    <span>&nearr;</span>
+                    <span>&#8599;</span>
                   </Link>
                 )}
               </div>
@@ -2727,7 +2633,7 @@ export default async function AdminPage(props: {
                         target="_blank"
                         className="px-2.5 py-1 rounded-lg border border-indigo-200 bg-indigo-50/70 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition"
                       >
-                        View in Public Directory &nearr;
+                        View in Public Directory &#8599;
                       </Link>
                       <Link
                         href={`/admin?tab=groups&editGroup=${g.id}`}
@@ -2864,7 +2770,7 @@ export default async function AdminPage(props: {
                   type="email"
                   name="email"
                   required
-                  placeholder="e.g. aisha.rahman@demo.islington.edu.np"
+                  placeholder="e.g. aisha.rahman@islington.edu.np"
                   className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-sm text-slate-900 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
               </div>

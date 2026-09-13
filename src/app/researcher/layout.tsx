@@ -22,15 +22,15 @@ export default async function ResearcherLayout({
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col antialiased text-slate-900">
       {/* Top Researcher Header */}
-      <header className="sticky top-0 z-30 h-16 border-b border-slate-200/80 bg-white/95 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between shadow-xs">
+      <header className="sticky top-0 z-30 min-h-20 border-b border-slate-200/80 bg-white/95 backdrop-blur-md px-4 sm:px-8 py-2 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-4">
           <Link href="/researcher" className="flex items-center gap-3 group">
             <Image
               src="/images/islington-rd-connect-logo.png"
               alt="Islington R&D Connect"
-              width={160}
-              height={56}
-              className="h-8 w-auto object-contain group-hover:opacity-90 transition"
+              width={220}
+              height={72}
+              className="h-12 sm:h-14 w-auto object-contain group-hover:opacity-90 transition"
               priority
             />
             <div className="border-l border-slate-200 pl-3">
@@ -42,10 +42,6 @@ export default async function ResearcherLayout({
               </span>
             </div>
           </Link>
-          <span className="hidden md:inline-block h-4 w-px bg-slate-200" />
-          <span className="hidden md:inline-block text-xs font-semibold text-slate-500">
-            Authenticated Workspace
-          </span>
         </div>
 
         {/* User Badge & Actions */}
@@ -64,13 +60,6 @@ export default async function ResearcherLayout({
               {profile.role}
             </span>
           </div>
-
-          <Link
-            href="/"
-            className="text-xs font-semibold text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 transition"
-          >
-            &larr; Public Hub
-          </Link>
 
           <form action={signOutAction}>
             <button
@@ -119,6 +108,12 @@ export default async function ResearcherLayout({
           >
             <span>My Submissions</span>
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
+          </Link>
+          <Link
+            href="/researcher/log"
+            className="px-3 py-1.5 rounded-lg hover:bg-slate-100 hover:text-slate-900 transition shrink-0"
+          >
+            Log
           </Link>
           <Link
             href="/researcher/messages"

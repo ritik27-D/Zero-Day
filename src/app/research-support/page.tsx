@@ -210,9 +210,6 @@ export default async function ResearchSupportPage(props: {
                     <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-50 text-cyan-800 border border-cyan-200">
                       {res.category}
                     </span>
-                    {res.is_demo && (
-                      <span className="hidden" data-demo="true">demo</span>
-                    )}
                   </div>
 
                   <h3 className="text-base font-bold text-slate-900">{res.title}</h3>

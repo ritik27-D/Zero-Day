@@ -189,7 +189,7 @@ export default async function ResearcherDashboardPage() {
       </section>
 
       {/* Notifications & Recent Faculty Activity Feed */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <section id="activity" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center gap-2.5">
             <span className="p-2 rounded-xl bg-cyan-50 text-cyan-700">

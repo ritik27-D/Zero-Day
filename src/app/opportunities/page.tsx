@@ -152,9 +152,6 @@ export default async function OpportunitiesPage(props: {
                       <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
                         {op.type.replace(/_/g, " ")}
                       </span>
-                      {op.is_demo && (
-                        <span className="hidden" data-demo="true">demo</span>
-                      )}
                     </div>
 
                     <Link href={`/opportunities/${op.slug}`} className="block group">

@@ -6,6 +6,29 @@ import { requireAdmin } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { getSubmissionById, updateSubmissionStatus } from "@/lib/submissions";
 import { logAdminActivity } from "@/lib/hub-data";
+import { reviewResearcherActivityLog } from "@/lib/researcher-logs";
+
+export async function reviewResearcherLogAction(formData: FormData) {
+  const session = await requireAdmin();
+  const id = formData.get("id")?.toString().trim();
+  const status = formData.get("status")?.toString().trim();
+  const notes = formData.get("admin_notes")?.toString().trim() || null;
+
+  if (!id || (status !== "approved" && status !== "rejected")) {
+    redirect(`/admin?tab=logs&error=${encodeURIComponent("Invalid researcher log review request.")}`);
+  }
+
+  try {
+    await reviewResearcherActivityLog(id, status, session.user.id, notes);
+    revalidatePath("/admin");
+    revalidatePath("/researcher/log");
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unable to review researcher log.";
+    redirect(`/admin?tab=logs&error=${encodeURIComponent(message)}`);
+  }
+
+  redirect(`/admin?tab=logs&success=Researcher+log+${status}+successfully.`);
+}
 
 export async function saveResearcherAction(formData: FormData) {
   await requireAdmin();
@@ -497,12 +520,31 @@ export async function saveEventAction(formData: FormData) {
       updated_at: new Date().toISOString(),
     };
 
-    if (id) {
-      const { error } = await client.from("events").update(payload).eq("id", id);
-      if (error) throw new Error(error.message);
-    } else {
-      const { error } = await client.from("events").insert(payload);
-      if (error) throw new Error(error.message);
+    const result = id
+      ? await client.from("events").update(payload).eq("id", id)
+      : await client.from("events").insert(payload);
+
+    if (result.error) {
+      const missingColumn = /column .*schema cache|column .* does not exist/i.test(result.error.message);
+      if (!missingColumn) throw new Error(result.error.message);
+
+      const basePayload = {
+        title,
+        slug,
+        description,
+        starts_at: start_date,
+        ends_at: end_date,
+        location,
+        status,
+        is_demo,
+        updated_at: new Date().toISOString(),
+      };
+
+      const fallbackResult = id
+        ? await client.from("events").update(basePayload).eq("id", id)
+        : await client.from("events").insert(basePayload);
+
+      if (fallbackResult.error) throw new Error(fallbackResult.error.message);
     }
 
     revalidatePath("/admin");
@@ -582,12 +624,30 @@ export async function saveOpportunityAction(formData: FormData) {
       updated_at: new Date().toISOString(),
     };
 
-    if (id) {
-      const { error } = await client.from("opportunities").update(payload).eq("id", id);
-      if (error) throw new Error(error.message);
-    } else {
-      const { error } = await client.from("opportunities").insert(payload);
-      if (error) throw new Error(error.message);
+    const result = id
+      ? await client.from("opportunities").update(payload).eq("id", id)
+      : await client.from("opportunities").insert(payload);
+
+    if (result.error) {
+      const missingColumn = /column .*schema cache|column .* does not exist/i.test(result.error.message);
+      if (!missingColumn) throw new Error(result.error.message);
+
+      const basePayload = {
+        title,
+        slug,
+        description,
+        status,
+        closing_date: deadline,
+        url: application_url,
+        is_demo,
+        updated_at: new Date().toISOString(),
+      };
+
+      const fallbackResult = id
+        ? await client.from("opportunities").update(basePayload).eq("id", id)
+        : await client.from("opportunities").insert(basePayload);
+
+      if (fallbackResult.error) throw new Error(fallbackResult.error.message);
     }
 
     revalidatePath("/admin");
@@ -847,6 +907,21 @@ export async function saveResearchGroupAction(formData: FormData) {
   }
 
   const client = createSupabaseAdminClient();
+
+  const { data: matchingGroup, error: slugCheckError } = await client
+    .from("research_groups")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (slugCheckError) {
+    redirect(`/admin?tab=groups&error=${encodeURIComponent(slugCheckError.message)}`);
+  }
+  if (matchingGroup && matchingGroup.id !== id) {
+    redirect(
+      `/admin?tab=groups&error=${encodeURIComponent(`The slug "${slug}" is already used by another research group.`)}`
+    );
+  }
 
   try {
     let groupId = id;

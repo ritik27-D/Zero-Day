@@ -120,7 +120,7 @@ export default async function AboutPage() {
         </section>
 
         {/* ========================================================================= */}
-        {/* 4. LEADERSHIP & ADVISORY STRUCTURE (Clearly Labeled Demo/Placeholder)    */}
+        {/* 4. LEADERSHIP & ADVISORY STRUCTURE                                      */}
         {/* ========================================================================= */}
         <section id="leadership" className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-4 gap-2">
@@ -138,7 +138,6 @@ export default async function AboutPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-2 relative overflow-hidden">
               <span className="absolute top-3 right-3 text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded uppercase">
-                Sample
               </span>
               <div className="w-12 h-12 rounded-full bg-cyan-100 text-cyan-800 flex items-center justify-center font-bold text-sm">
                 AR
@@ -152,7 +151,6 @@ export default async function AboutPage() {
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-2 relative overflow-hidden">
               <span className="absolute top-3 right-3 text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded uppercase">
-                Sample
               </span>
               <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-800 flex items-center justify-center font-bold text-sm">
                 NS
@@ -166,7 +164,6 @@ export default async function AboutPage() {
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-2 relative overflow-hidden">
               <span className="absolute top-3 right-3 text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded uppercase">
-                Sample
               </span>
               <div className="w-12 h-12 rounded-full bg-teal-100 text-teal-800 flex items-center justify-center font-bold text-sm">
                 PJ
@@ -180,7 +177,6 @@ export default async function AboutPage() {
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-2 relative overflow-hidden">
               <span className="absolute top-3 right-3 text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded uppercase">
-                Sample
               </span>
               <div className="w-12 h-12 rounded-full bg-violet-100 text-violet-800 flex items-center justify-center font-bold text-sm">
                 LM
@@ -219,11 +215,6 @@ export default async function AboutPage() {
                     <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 text-[10px] font-bold uppercase">
                       Specialized Lab
                     </span>
-                    {grp.is_demo && (
-                      <span className="text-[9px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded uppercase font-semibold">
-                        Demo
-                      </span>
-                    )}
                   </div>
                   <h3 className="text-base font-bold text-slate-900 mt-2">{grp.name}</h3>
                   <p className="text-xs text-slate-600 leading-relaxed mt-1">{grp.description}</p>

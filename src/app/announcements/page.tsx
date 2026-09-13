@@ -72,7 +72,7 @@ export default async function AnnouncementsPage() {
                       rel="noopener noreferrer"
                       className="text-xs text-slate-500 hover:text-slate-800 transition"
                     >
-                      Related Portal &nearr;
+                      Related Portal &#8599;
                     </a>
                   )}
                 </div>

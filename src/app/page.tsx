@@ -444,9 +444,6 @@ export default async function HomePage() {
                       <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-700">
                         {proj.status}
                       </span>
-                      {proj.is_demo && (
-                        <span className="hidden" data-demo="true">demo</span>
-                      )}
                     </div>
 
                     <h3 className="font-bold text-base text-slate-900 leading-snug line-clamp-2">
@@ -495,7 +492,7 @@ export default async function HomePage() {
               Connected Research Trail
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 mt-1.5 max-w-2xl leading-relaxed">
-              Demonstrating Islington&apos;s relational architecture: how a field of inquiry connects directly to faculty investigators, collaborative projects, and peer-reviewed publications.
+              Showing Islington&apos;s relational architecture: how a field of inquiry connects directly to faculty investigators, collaborative projects, and peer-reviewed publications.
             </p>
           </div>
 
@@ -608,7 +605,7 @@ export default async function HomePage() {
               </div>
               <div className="mt-6 pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs">
                 <span className="text-slate-500 font-mono text-[10px] truncate max-w-[120px]">
-                  {connectedPublication?.doi || "10.1109/DEMO.2025"}
+                  {connectedPublication?.doi || "10.1109/ISLINGTON.2025"}
                 </span>
                 <Link
                   href={`/discover?q=${encodeURIComponent(connectedPublication?.title || "")}`}

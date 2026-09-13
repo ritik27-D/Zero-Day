@@ -206,11 +206,6 @@ export default async function ProjectsHubPage(props: {
                         >
                           {project.status}
                         </span>
-                        {project.is_demo && (
-                          <span className="text-[9px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded uppercase font-semibold">
-                            Demo
-                          </span>
-                        )}
                       </div>
 
                       <Link href={`/projects/${project.slug}`} className="block mt-2 font-bold text-sm text-slate-900 hover:text-cyan-700 leading-snug">

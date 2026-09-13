@@ -175,11 +175,6 @@ export default async function ProjectDetailPage(props: {
               <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold capitalize text-emerald-700">
                 Status: {project.status}
               </span>
-              {project.is_demo ? (
-                <span className="rounded bg-amber-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-amber-800">
-                  Demo Data
-                </span>
-              ) : null}
             </div>
           </div>
 

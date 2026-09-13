@@ -51,9 +51,6 @@ export default async function ResourceDetailPage(props: {
               {res.category.replace(/_/g, " ")}
             </span>
 
-            {res.is_demo && (
-              <span className="hidden" data-demo="true">demo</span>
-            )}
           </div>
 
           <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">

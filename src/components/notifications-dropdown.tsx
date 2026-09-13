@@ -200,7 +200,7 @@ export default function NotificationsDropdown({
                           </svg>
                         </span>
                       )}
-                      {(item.type === "announcement" || item.type === "system" || item.type === "alert") && (
+                      {(item.type === "announcement" || item.type === "system" || item.type === "researcher_log" || item.type === "alert") && (
                         <span className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

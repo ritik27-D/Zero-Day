@@ -88,14 +88,6 @@ export default async function ResearcherSubmissionsPage(props: {
                   </div>
                 )}
 
-                <div className="pt-3 border-t border-slate-100 text-xs">
-                  <span className="font-semibold text-slate-500 uppercase tracking-wider text-[10px]">
-                    Payload Details
-                  </span>
-                  <div className="mt-1.5 p-3 rounded-xl bg-slate-50 text-[11px] font-mono text-slate-700 overflow-x-auto border border-slate-100">
-                    <pre>{JSON.stringify(sub.payload, null, 2)}</pre>
-                  </div>
-                </div>
               </div>
             );
           })

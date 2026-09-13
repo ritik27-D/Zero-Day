@@ -178,9 +178,6 @@ export default async function EthicsAndIntegrityPage() {
                   >
                     Read Policy &rarr;
                   </Link>
-                  {policy.is_demo && (
-                    <span className="hidden" data-demo="true">demo</span>
-                  )}
                 </div>
               </div>
             ))}

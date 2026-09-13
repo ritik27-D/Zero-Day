@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from "./supabase/server";
+import { createSupabaseAdminClient, createSupabaseServerClient } from "./supabase/server";
 
 export type HubEvent = {
   id: string;
@@ -89,7 +89,7 @@ export type HubResearchGroup = {
   researchers?: { id: string; name: string; slug: string; title: string }[];
 };
 
-// Fallback / Canonical Demo Datasets
+// Fallback / canonical content datasets
 export const DEMO_EVENTS: HubEvent[] = [
   {
     id: "e1-symposium-2026",
@@ -196,7 +196,7 @@ export const DEMO_OPPORTUNITIES: HubOpportunity[] = [
     eligibility: "Permanent and contracted faculty members at Islington College.",
     amount: "NPR 350,000 – NPR 500,000",
     deadline: "2026-11-30",
-    application_url: "#demo-apply-grant",
+    application_url: "/login?redirect=/researcher/submissions",
     requirements: "Requires a 5-page formal proposal, detailed work plan, milestone deliverables, and budget justification.",
     status: "open",
     is_demo: true,
@@ -212,7 +212,7 @@ export const DEMO_OPPORTUNITIES: HubOpportunity[] = [
     eligibility: "Year 2 and Year 3 undergraduate students with a minimum academic standing of 3.2 GPA.",
     amount: "NPR 60,000 stipend + lab access",
     deadline: "2026-10-31",
-    application_url: "#demo-apply-fellowship",
+    application_url: "/login?redirect=/researcher/submissions",
     requirements: "Cover letter, academic transcript, faculty recommendation, and a 500-word statement of research interest.",
     status: "open",
     is_demo: true,
@@ -229,7 +229,7 @@ export const DEMO_OPPORTUNITIES: HubOpportunity[] = [
     eligibility: "Open to academic researchers, doctoral candidates, and industry specialists.",
     amount: "Full open-access APC fee waiver",
     deadline: "2026-12-15",
-    application_url: "https://islington.edu.np/ijmr/submit",
+    application_url: "/ijmr",
     requirements: "Full papers between 5,000 and 8,000 words prepared strictly following the IJMR publication guidelines.",
     status: "open",
     is_demo: true,
@@ -245,7 +245,7 @@ export const DEMO_OPPORTUNITIES: HubOpportunity[] = [
     eligibility: "Postgraduate MSc IT students or final-year computing students with strong Python & Wireshark skills.",
     amount: "NPR 25,000 / month (Part-Time)",
     deadline: "2026-10-15",
-    application_url: "#demo-apply-assistantship",
+    application_url: "/login?redirect=/researcher/submissions",
     requirements: "Demonstrated proficiency in Linux, Python networking libraries (Scapy, PyShark), and network security fundamentals.",
     status: "open",
     is_demo: true,
@@ -262,7 +262,7 @@ export const DEMO_OPPORTUNITIES: HubOpportunity[] = [
     eligibility: "Teams of 2 to 4 Islington College students across any academic year.",
     amount: "Total prize pool: NPR 150,000",
     deadline: "2026-11-15",
-    application_url: "#demo-apply-challenge",
+    application_url: "/login?redirect=/researcher/submissions",
     requirements: "Prototype demonstration video, circuit schematic or software repo, and 3-page design overview document.",
     status: "open",
     is_demo: true,
@@ -277,7 +277,7 @@ export const DEMO_OPPORTUNITIES: HubOpportunity[] = [
     eligibility: "Full-time faculty presenting oral papers as first or corresponding authors.",
     amount: "Up to NPR 200,000 per paper",
     deadline: "2026-12-31",
-    application_url: "#demo-apply-travel",
+    application_url: "/login?redirect=/researcher/submissions",
     requirements: "Official conference acceptance notification, peer review feedback copies, camera-ready PDF, and cost itinerary.",
     status: "open",
     is_demo: true,
@@ -292,7 +292,7 @@ export const DEMO_RESOURCES: HubResource[] = [
     category: "ethics",
     description: "Official protocol and standard operating procedures for ethical clearance involving human subjects, surveys, data collection, or behavioral research.",
     content: "All research projects conducted by faculty or students involving human subjects, questionnaires, user evaluations, or sensitive dataset acquisitions must secure formal ethical approval prior to beginning empirical collection. Applications must detail data retention policies, participant consent forms, risk mitigation strategies, and anonymization procedures.",
-    external_url: "#demo-download-irb-sop",
+    external_url: "/ethics",
     status: "published",
     is_demo: true,
   },
@@ -303,7 +303,7 @@ export const DEMO_RESOURCES: HubResource[] = [
     category: "academic_writing",
     description: "Comprehensive reference manual covering typography, section structuring, equation typesetting, and citation integrity for computing publications.",
     content: "Academic papers must communicate methodology and validation with utmost clarity. This guide specifies standard formatting for mathematical formulations, algorithm pseudocode, table layout guidelines, and strict IEEE/ACM reference formats. Plagiarism or uncredited paraphrasing is strictly monitored using Turnitin with a similarity threshold below 15%.",
-    external_url: "#demo-view-guide",
+    external_url: "/research-support",
     status: "published",
     is_demo: true,
   },
@@ -314,7 +314,7 @@ export const DEMO_RESOURCES: HubResource[] = [
     category: "publication_support",
     description: "Guidance for researchers seeking institutional financial subsidies and compliance assistance for publishing in indexed Open Access journals.",
     content: "Islington College supports disseminating scientific inquiry without paywall barriers. Under this protocol, researchers with accepted manuscripts in Q1/Q2 Scopus-indexed Open Access venues may request institutional Article Processing Charge (APC) subsidies through the R&D Director’s office.",
-    external_url: "#demo-apc-guidelines",
+    external_url: "/funding",
     status: "published",
     is_demo: true,
   },
@@ -325,7 +325,7 @@ export const DEMO_RESOURCES: HubResource[] = [
     category: "ai_ethics",
     description: "Institutional guidelines regarding the permissible and transparent use of Large Language Models and generative AI tools in academic research.",
     content: "Generative AI tools and LLMs cannot be listed as co-authors on any scholarly publication or research project. Researchers must transparently disclose any utilization of AI tools for code drafting, proofreading, or data synthesis within the paper’s Methodology or Acknowledgements section.",
-    external_url: "#demo-ai-policy",
+    external_url: "/ethics",
     status: "published",
     is_demo: true,
     research_area: { id: "ra-ai", name: "Artificial Intelligence", slug: "artificial-intelligence" },
@@ -337,7 +337,7 @@ export const DEMO_RESOURCES: HubResource[] = [
     category: "templates",
     description: "Downloadable structured template for formulating competitive grant submissions and institutional research proposals.",
     content: "Contains pre-formatted sections for Executive Summary, Problem Formulation, State of the Art & Literature Review, Detailed Research Methodology, Risk Matrix, Work Breakdown Structure (Gantt chart), Milestone Deliverables, and Itemized Budget Justification.",
-    external_url: "#demo-download-proposal-template",
+    external_url: "/research-support",
     status: "published",
     is_demo: true,
   },
@@ -348,7 +348,7 @@ export const DEMO_RESOURCES: HubResource[] = [
     category: "data_protection",
     description: "Standard operating procedure for storing, encrypting, and handling experimental datasets in compliance with digital privacy standards.",
     content: "Sensitive datasets, network capture pcap files, and user telemetry collected during research must be encrypted at rest using AES-256 and stored on institutional access-controlled servers. De-identification and pseudonymization pipelines must be validated prior to data sharing.",
-    external_url: "#demo-download-privacy-sop",
+    external_url: "/ethics",
     status: "published",
     is_demo: true,
     research_area: { id: "ra-cyber", name: "Cybersecurity", slug: "cybersecurity" },
@@ -360,7 +360,7 @@ export const DEMO_RESOURCES: HubResource[] = [
     category: "facilities",
     description: "Operational protocols, compute node reservation schedules, and safety instructions for accessing high-performance GPU workstations.",
     content: "The R&D Advanced Computing Lab provides specialized hardware workstations equipped with NVIDIA RTX GPUs, isolated subnet testbeds, and hardware logic analyzers for faculty and postgraduate research projects. Access requests require approval from the Lab Supervisor.",
-    external_url: "#demo-lab-facilities",
+    external_url: "/research-support",
     status: "published",
     is_demo: true,
     research_area: { id: "ra-ai", name: "Artificial Intelligence", slug: "artificial-intelligence" },
@@ -372,7 +372,7 @@ export const DEMO_RESOURCES: HubResource[] = [
     category: "methodology",
     description: "Methodological toolkit for conducting PRISMA-compliant systematic literature reviews and bibliometric analyses in computer science.",
     content: "Presents step-by-step guidance on query formulation for Scopus, IEEE Xplore, and Google Scholar, criteria for inclusion and exclusion, data extraction tables, and reference management synchronization using Zotero and Mendeley.",
-    external_url: "#demo-toolkit-guide",
+    external_url: "/research-support",
     status: "published",
     is_demo: true,
   },
@@ -383,7 +383,7 @@ export const DEMO_RESOURCES: HubResource[] = [
     category: "tools",
     description: "Curated catalog of licensed academic software, open-source benchmarking suites, simulation engines, and static code analyzers.",
     content: "Islington researchers have access to specialized simulation environments including MATLAB/Simulink, NS-3 for network modeling, PyTorch/TensorFlow GPU clusters, and Wireshark enterprise analyzers. This directory outlines software provisioning and license keys.",
-    external_url: "#demo-tools-directory",
+    external_url: "/research-support",
     status: "published",
     is_demo: true,
   },
@@ -394,7 +394,7 @@ export const DEMO_RESOURCES: HubResource[] = [
     category: "ethics_committee",
     description: "Composition of the ethics committee, review schedules, expedited review criteria, and formal ethical clearance application pack.",
     content: "The Research Ethics Committee oversees research integrity, human subject protections, and algorithmic fairness. Regular review cycles convene monthly. Submissions requiring expedited or full committee review must submit the standard Ethical Clearance Application Form alongside consent instruments.",
-    external_url: "#demo-rec-charter",
+    external_url: "/ethics",
     status: "published",
     is_demo: true,
   },
@@ -413,43 +413,43 @@ export const DEMO_PARTNERS: HubPartner[] = [
   },
   {
     id: "p2-nif",
-    slug: "nepal-internet-foundation",
-    name: "Nepal Internet Foundation",
-    type: "community",
-    description: "Civil society organization collaborating on internet measurement, community digital literacy, and internet governance research across Nepal.",
-    website_url: "https://nif.org.np",
+    slug: "icimod",
+    name: "International Centre for Integrated Mountain Development",
+    type: "research",
+    description: "Regional knowledge centre working on sustainable mountain development, climate resilience, and data-informed policy across the Hindu Kush Himalaya.",
+    website_url: "https://www.icimod.org",
     status: "active",
     is_demo: true,
   },
   {
     id: "p3-techsolutions",
-    slug: "techsolutions-nepal",
-    name: "TechSolutions Nepal Pvt. Ltd.",
-    type: "industry",
-    description: "Leading enterprise software engineering firm co-developing intrusion detection testbeds, industrial telemetry pipelines, and hosting student research interns.",
-    website_url: "https://techsolutions.com.np",
+    slug: "nepal-academy-of-science-and-technology",
+    name: "Nepal Academy of Science and Technology",
+    type: "research",
+    description: "National science and technology institution supporting research collaboration, innovation, and scientific capacity building in Nepal.",
+    website_url: "https://nast.org.np",
     status: "active",
     is_demo: true,
     project: { id: "proj-sentinel", title: "Sentinel AI IDS", slug: "sentinel-ai-ids" },
   },
   {
     id: "p4-ccrn",
-    slug: "center-for-cybersecurity-nepal",
-    name: "Center for Cybersecurity Research Nepal",
-    type: "government",
-    description: "National research alliance partnering on critical infrastructure threat intelligence, vulnerability disclosures, and cyber defense training programs.",
-    website_url: "https://cybersecurity.org.np",
+    slug: "kathmandu-university",
+    name: "Kathmandu University",
+    type: "academic",
+    description: "Nepali university partner represented in the hub for academic exchange, joint supervision, and interdisciplinary research collaboration.",
+    website_url: "https://ku.edu.np",
     status: "active",
     is_demo: true,
     project: { id: "proj-sentinel", title: "Sentinel AI IDS", slug: "sentinel-ai-ids" },
   },
   {
     id: "p5-aigov",
-    slug: "ai-governance-asia-initiative",
-    name: "AI Governance Asia Initiative",
-    type: "international",
-    description: "Regional research consortium advancing ethical machine learning deployment standards, multilingual NLP benchmarks, and AI policy harmonization.",
-    website_url: "https://aigov-asia.org",
+    slug: "nepal-research-and-education-network",
+    name: "Nepal Research and Education Network",
+    type: "network",
+    description: "Research and education network supporting connectivity, knowledge exchange, and digital research infrastructure for institutions across Nepal.",
+    website_url: "https://nren.net.np",
     status: "active",
     is_demo: true,
   },
@@ -459,9 +459,9 @@ export const DEMO_ANNOUNCEMENTS: HubAnnouncement[] = [
   {
     id: "an1-launch",
     slug: "launch-of-islington-rd-digital-hub",
-    title: "Official Launch of the Islington R&D Digital Hub",
-    summary: "Islington College officially unveils its unified R&D Connect Digital Hub to interconnect faculty researchers, ongoing projects, publications, and collaborative opportunities.",
-    content: "We are proud to announce the formal launch of the Islington R&D Connect Digital Hub. This platform serves as the central digital nerve center for our academic community, providing seamless public discovery of faculty research profiles, ongoing projects, scholarly outputs, and grant opportunities. The hub demonstrates Islington College's enduring commitment to pioneering applied research, fostering academic innovation, and strengthening industry partnerships.",
+    title: "Islington R&D Connect Hub Opens for Research Discovery",
+    summary: "The research office has opened the R&D Connect hub for discovering people, projects, publications, resources, and collaboration opportunities.",
+    content: "The Islington R&D Connect hub is now available to the college community. Researchers can maintain profiles, share projects and publications, find support resources, and follow opportunities coordinated by the Research and Development Centre.",
     published_at: "2026-09-01T09:00:00+05:45",
     status: "published",
     external_url: null,
@@ -470,34 +470,34 @@ export const DEMO_ANNOUNCEMENTS: HubAnnouncement[] = [
   {
     id: "an2-ijmr-call",
     slug: "ijmr-vol-4-call-for-papers",
-    title: "Call for Papers: Islington Journal of Multidisciplinary Research (IJMR) Vol. 4",
-    summary: "Submissions are invited for Volume 4 of the peer-reviewed Islington Journal of Multidisciplinary Research spanning computing, business technology, and applied sciences.",
-    content: "The Editorial Board of the Islington Journal of Multidisciplinary Research (IJMR) announces the open Call for Papers for Vol. 4, Issue 1. Authors are encouraged to submit original research papers, empirical studies, and comprehensive review articles. All submissions undergo double-blind peer review by an international editorial panel. Accepted papers are published open access with zero publication fees for institutional contributors.",
+    title: "IJMR Invites Manuscripts for Volume 4",
+    summary: "The Islington Journal of Multidisciplinary Research invites original research articles, reviews, and applied studies for its next volume.",
+    content: "The editorial team welcomes original research articles, empirical studies, and comprehensive reviews across computing, business technology, education, and applied sciences. Authors should consult the journal guidelines before submitting a manuscript for editorial screening and peer review.",
     published_at: "2026-09-08T10:30:00+05:45",
     status: "published",
-    external_url: "https://islington.edu.np/ijmr",
+    external_url: "/ijmr",
     is_demo: true,
   },
   {
     id: "an3-grants",
     slug: "2026-faculty-seed-grants-open",
-    title: "2026 Faculty Research Seed Grants Cycle Open for Applications",
-    summary: "The Islington R&D Committee is accepting grant applications from faculty researchers for high-impact innovative projects.",
-    content: "Faculty members across all computing and business technology faculties are invited to submit proposals for the 2026 Faculty Research Seed Grants. Grants provide financial awards between NPR 350,000 and NPR 500,000 for exploratory computing and applied intelligence research. Proposals must be submitted via the Researcher Submissions Portal by 30 November 2026.",
+    title: "Faculty Seed Grant Applications Open",
+    summary: "Faculty researchers can submit proposals for the 2026 internal seed grant cycle through the researcher portal.",
+    content: "The Research and Development Centre is accepting proposals for small-scale projects that demonstrate a clear research question, feasible methodology, expected outputs, and a realistic delivery plan. Applications should be submitted through the researcher portal before the published closing date.",
     published_at: "2026-09-10T11:00:00+05:45",
     status: "published",
-    external_url: null,
+    external_url: "/login?redirect=/researcher/submissions",
     is_demo: true,
   },
   {
     id: "an4-lecture",
     slug: "guest-lecture-series-trustworthy-ai",
-    title: "Distinguished Guest Lecture: Building Trustworthy and Explainable AI Systems",
-    summary: "Visiting scholar Dr. Elena Rostova presents an institutional lecture on verifiable machine learning models for high-consequence enterprise environments.",
-    content: "The Islington Applied AI & Intelligent Systems Group is pleased to host Dr. Elena Rostova for a distinguished guest lecture titled 'Building Trustworthy and Explainable AI Systems: Bridging Theory and Production Deployments'. The lecture will take place in the Islington College Auditorium on 14 October 2026. All faculty members, postgraduate researchers, and students are cordially invited.",
+    title: "Guest Lecture on Trustworthy AI Systems",
+    summary: "The Applied AI and Intelligent Systems Group will host an open lecture on explainability, evaluation, and responsible deployment.",
+    content: "The session will examine practical approaches to evaluating machine learning systems in high-consequence settings, including documentation, uncertainty communication, and human oversight. Faculty members, researchers, and students are invited to attend.",
     published_at: "2026-09-12T12:00:00+05:45",
     status: "published",
-    external_url: null,
+    external_url: "/events",
     is_demo: true,
   },
 ];
@@ -543,9 +543,9 @@ function toItem<T>(val: T | T[] | null | undefined): T | null {
 // DATA ACCESS FUNCTIONS
 // ----------------------------------------------------------------------------
 
-export async function getEvents(): Promise<HubEvent[]> {
+export async function getEvents(useAdminClient = false): Promise<HubEvent[]> {
   try {
-    const client = createSupabaseServerClient();
+    const client = useAdminClient ? createSupabaseAdminClient() : createSupabaseServerClient();
     const { data, error } = await client
       .from("events")
       .select("id, slug, title, type, description, start_date, starts_at, end_date, ends_at, location, registration_url, external_url, status, is_demo, research_area_id, researcher_id, project_id")
@@ -570,6 +570,28 @@ export async function getEvents(): Promise<HubEvent[]> {
         is_demo: d.is_demo ?? true,
       }));
     }
+
+    const { data: baseData, error: baseError } = await client
+      .from("events")
+      .select("id, slug, title, description, starts_at, ends_at, location, status, is_demo")
+      .order("starts_at", { ascending: true, nullsFirst: false });
+
+    if (!baseError && baseData && baseData.length > 0) {
+      return baseData.map((d) => ({
+        id: d.id,
+        slug: d.slug,
+        title: d.title,
+        type: "conference",
+        description: d.description,
+        start_date: d.starts_at || null,
+        end_date: d.ends_at || null,
+        location: d.location || null,
+        registration_url: null,
+        external_url: null,
+        status: d.status || "upcoming",
+        is_demo: d.is_demo ?? true,
+      }));
+    }
   } catch {
     // fallback
   }
@@ -581,9 +603,9 @@ export async function getEventBySlug(slug: string): Promise<HubEvent | null> {
   return events.find((e) => e.slug === slug) || null;
 }
 
-export async function getOpportunities(): Promise<HubOpportunity[]> {
+export async function getOpportunities(useAdminClient = false): Promise<HubOpportunity[]> {
   try {
-    const client = createSupabaseServerClient();
+    const client = useAdminClient ? createSupabaseAdminClient() : createSupabaseServerClient();
     const { data, error } = await client
       .from("opportunities")
       .select("id, slug, title, type, description, provider, eligibility, amount, deadline, closing_date, application_url, url, requirements, status, is_demo, research_area_id, project_id")
@@ -608,6 +630,29 @@ export async function getOpportunities(): Promise<HubOpportunity[]> {
         is_demo: d.is_demo ?? true,
       }));
     }
+
+    const { data: baseData, error: baseError } = await client
+      .from("opportunities")
+      .select("id, slug, title, description, status, closing_date, url, is_demo")
+      .order("closing_date", { ascending: true, nullsFirst: false });
+
+    if (!baseError && baseData) {
+      return baseData.map((d) => ({
+        id: d.id,
+        slug: d.slug,
+        title: d.title,
+        type: "grant",
+        description: d.description,
+        provider: "Islington College",
+        eligibility: null,
+        amount: null,
+        deadline: d.closing_date || null,
+        application_url: d.url || null,
+        requirements: null,
+        status: d.status || "open",
+        is_demo: d.is_demo ?? true,
+      }));
+    }
   } catch {
     // fallback
   }
@@ -619,9 +664,9 @@ export async function getOpportunityBySlug(slug: string): Promise<HubOpportunity
   return opps.find((o) => o.slug === slug) || null;
 }
 
-export async function getResources(): Promise<HubResource[]> {
+export async function getResources(useAdminClient = false): Promise<HubResource[]> {
   try {
-    const client = createSupabaseServerClient();
+    const client = useAdminClient ? createSupabaseAdminClient() : createSupabaseServerClient();
     const { data, error } = await client
       .from("resources")
       .select("id, slug, title, category, description, content, external_url, status, is_demo, research_area_id")
@@ -641,9 +686,9 @@ export async function getResourceBySlug(slug: string): Promise<HubResource | nul
   return resources.find((r) => r.slug === slug) || null;
 }
 
-export async function getPartners(): Promise<HubPartner[]> {
+export async function getPartners(useAdminClient = false): Promise<HubPartner[]> {
   try {
-    const client = createSupabaseServerClient();
+    const client = useAdminClient ? createSupabaseAdminClient() : createSupabaseServerClient();
     const { data, error } = await client
       .from("partners")
       .select("id, slug, name, type, description, website_url, status, is_demo, project_id")
@@ -658,9 +703,9 @@ export async function getPartners(): Promise<HubPartner[]> {
   return DEMO_PARTNERS;
 }
 
-export async function getAnnouncements(): Promise<HubAnnouncement[]> {
+export async function getAnnouncements(useAdminClient = false): Promise<HubAnnouncement[]> {
   try {
-    const client = createSupabaseServerClient();
+    const client = useAdminClient ? createSupabaseAdminClient() : createSupabaseServerClient();
     const { data, error } = await client
       .from("announcements")
       .select("id, slug, title, summary, content, published_at, status, external_url, is_demo")
@@ -680,9 +725,9 @@ export async function getAnnouncementBySlug(slug: string): Promise<HubAnnounceme
   return announcements.find((a) => a.slug === slug) || null;
 }
 
-export async function getResearchGroups(): Promise<HubResearchGroup[]> {
+export async function getResearchGroups(useAdminClient = false): Promise<HubResearchGroup[]> {
   try {
-    const client = createSupabaseServerClient();
+    const client = useAdminClient ? createSupabaseAdminClient() : createSupabaseServerClient();
     const { data, error } = await client
       .from("research_groups")
       .select(`
@@ -713,53 +758,6 @@ export async function getResearchGroups(): Promise<HubResearchGroup[]> {
     // fallback
   }
   return DEMO_GROUPS;
-}
-
-export async function getResearchGroupBySlug(slug: string): Promise<HubResearchGroup | null> {
-  const groups = await getResearchGroups();
-  return groups.find((g) => g.slug === slug) || null;
-}
-
-// ----------------------------------------------------------------------------
-// DYNAMIC STATISTICS (No statistics table)
-// ----------------------------------------------------------------------------
-
-export async function getDynamicHubStats() {
-  const client = createSupabaseServerClient();
-
-  const [
-    projectsCount,
-    publicationsCount,
-    researchersCount,
-    areasCount,
-  ] = await Promise.all([
-    Promise.resolve(client.from("projects").select("*", { count: "exact", head: true })).then((r) => r.count || 0).catch(() => 4),
-    Promise.resolve(client.from("publications").select("*", { count: "exact", head: true })).then((r) => r.count || 0).catch(() => 4),
-    Promise.resolve(client.from("researchers").select("*", { count: "exact", head: true })).then((r) => r.count || 0).catch(() => 3),
-    Promise.resolve(client.from("research_areas").select("*", { count: "exact", head: true })).then((r) => r.count || 0).catch(() => 5),
-  ]);
-
-  const [events, opportunities, resources, partners, groups] = await Promise.all([
-    getEvents(),
-    getOpportunities(),
-    getResources(),
-    getPartners(),
-    getResearchGroups(),
-  ]);
-
-  return {
-    projectsCount,
-    publicationsCount,
-    researchersCount,
-    areasCount,
-    eventsCount: events.length,
-    upcomingEventsCount: events.filter((e) => e.status === "upcoming").length,
-    opportunitiesCount: opportunities.length,
-    openOpportunitiesCount: opportunities.filter((o) => o.status === "open").length,
-    resourcesCount: resources.length,
-    partnersCount: partners.length,
-    groupsCount: groups.length,
-  };
 }
 
 // ----------------------------------------------------------------------------

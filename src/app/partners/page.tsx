@@ -111,7 +111,7 @@ export default async function PartnersPage(props: {
                     className="text-xs font-bold text-cyan-700 hover:text-cyan-800 transition flex items-center gap-1"
                   >
                     <span>Visit Website</span>
-                    <span>&nearr;</span>
+                    <span>&#8599;</span>
                   </a>
                 ) : (
                   <span className="text-xs text-slate-400">Institutional Partner</span>

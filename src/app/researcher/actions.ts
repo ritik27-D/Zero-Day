@@ -4,6 +4,47 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireResearcher } from "@/lib/auth";
 import { createSubmission } from "@/lib/submissions";
+import { createResearcherActivityLog } from "@/lib/researcher-logs";
+
+export async function submitResearcherLogAction(formData: FormData) {
+  const session = await requireResearcher();
+  const researcherId = session.profile.researcherId;
+
+  if (!researcherId) {
+    return { success: false, message: "Your account is not linked to a researcher profile." };
+  }
+
+  const projectName = formData.get("project_name")?.toString().trim() || "";
+  const mentorName = formData.get("mentor_name")?.toString().trim() || "";
+  const activityDate = formData.get("activity_date")?.toString().trim() || "";
+  const duration = formData.get("duration")?.toString().trim() || "";
+  const mentorAttendance = formData.get("mentor_attendance")?.toString().trim() || "";
+  const studentAttendance = formData.get("student_attendance")?.toString().trim() || "";
+  const attendanceMode = formData.get("attendance_mode")?.toString().trim() || "";
+
+  if (!projectName || !mentorName || !activityDate || !duration || !mentorAttendance || !studentAttendance || !attendanceMode) {
+    return { success: false, message: "Please complete every log field before submitting." };
+  }
+
+  try {
+    await createResearcherActivityLog({
+      researcherId,
+      userId: session.user.id,
+      projectName,
+      mentorName,
+      activityDate,
+      duration,
+      mentorAttendance,
+      studentAttendance,
+      attendanceMode,
+    });
+    revalidatePath("/researcher/log");
+    revalidatePath("/admin");
+    return { success: true, message: "Log saved and sent to the administrator panel." };
+  } catch (err: unknown) {
+    return { success: false, message: err instanceof Error ? err.message : "Unable to save the activity log." };
+  }
+}
 
 export async function submitResearchUpdateAction(formData: FormData) {
   const session = await requireResearcher();

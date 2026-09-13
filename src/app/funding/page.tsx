@@ -197,9 +197,6 @@ export default async function FundingHubPage(props: {
                       <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
                         {op.type.replace("_", " ")}
                       </span>
-                      {op.is_demo && (
-                        <span className="hidden" data-demo="true">demo</span>
-                      )}
                     </div>
 
                     <h2 className="text-base font-bold text-slate-900 leading-snug">
@@ -360,11 +357,6 @@ export default async function FundingHubPage(props: {
                       <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-200 text-slate-800">
                         {proj.status}
                       </span>
-                      {proj.is_demo && (
-                        <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                          Demo
-                        </span>
-                      )}
                     </div>
                     <h3 className="text-xs font-bold text-slate-900 line-clamp-2">
                       {proj.title}

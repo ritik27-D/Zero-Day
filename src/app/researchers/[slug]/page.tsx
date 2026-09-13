@@ -168,11 +168,6 @@ export default async function ResearcherDetailPage(props: {
                   <span>Message Researcher</span>
                 </Link>
               )}
-              {researcher.is_demo ? (
-                <span className="rounded bg-amber-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-800">
-                  Demo Data
-                </span>
-              ) : null}
             </div>
           </div>
 

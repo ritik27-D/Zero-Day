@@ -1,8 +1,10 @@
 import Link from "next/link";
+import Image from "next/image";
 import { connection } from "next/server";
 import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import LayoutShell from "@/components/layout-shell";
 import { getResearchGroups } from "@/lib/hub-data";
+import { getResearcherPortrait } from "@/lib/researcher-images";
 
 type Researcher = {
   id: string;
@@ -89,12 +91,14 @@ export default async function ResearchersPage() {
                 <div>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-600 text-white font-bold flex items-center justify-center text-sm shadow-sm">
-                        {researcher.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .slice(0, 2)
-                          .join("")}
+                      <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-slate-100 shadow-sm shrink-0">
+                        <Image
+                          src={getResearcherPortrait(researcher.slug)}
+                          alt={`${researcher.name} portrait`}
+                          fill
+                          sizes="56px"
+                          className="object-cover"
+                        />
                       </div>
                       <div>
                         <h2 className="text-base font-bold text-slate-900 leading-snug">
@@ -103,9 +107,6 @@ export default async function ResearchersPage() {
                         <p className="text-xs font-medium text-slate-500">{researcher.title}</p>
                       </div>
                     </div>
-                    {researcher.is_demo && (
-                      <span className="hidden" data-demo="true">demo</span>
-                    )}
                   </div>
 
                   <p className="mt-4 text-xs text-slate-600 line-clamp-3 leading-relaxed">
@@ -163,9 +164,6 @@ export default async function ResearchersPage() {
                     <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
                       Research Lab
                     </span>
-                    {group.is_demo && (
-                      <span className="hidden" data-demo="true">demo</span>
-                    )}
                   </div>
                   <h4 className="text-sm font-bold text-slate-900">{group.name}</h4>
                   <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">

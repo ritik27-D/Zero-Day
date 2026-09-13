@@ -484,11 +484,6 @@ export default async function DiscoverPage(props: {
                             </Link>
                             <p className="text-xs font-medium text-cyan-700">{researcher.title}</p>
                           </div>
-                          {researcher.is_demo && (
-                            <span className="text-[9px] uppercase font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                              Demo
-                            </span>
-                          )}
                         </div>
 
                         <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
@@ -550,11 +545,6 @@ export default async function DiscoverPage(props: {
                         <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
                           {p.status}
                         </span>
-                        {p.is_demo && (
-                          <span className="text-[9px] uppercase font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                            Demo
-                          </span>
-                        )}
                       </div>
 
                       <Link

@@ -270,11 +270,6 @@ export default async function PublicationsHubPage(props: {
                             DOI: {pub.doi}
                           </span>
                         )}
-                        {pub.is_demo && (
-                          <span className="text-[9px] font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded">
-                            Demo
-                          </span>
-                        )}
                       </div>
                     </div>
 
